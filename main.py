@@ -14,7 +14,7 @@ st.set_page_config(
 st.title("Maine Hospital Financial Ratios")
 
 # Load data
-df = pd.read_pickle('../../hospital_ratios.pkl')
+df = pd.read_pickle('hospital_ratios.pkl')
 
 # Sidebar
 st.sidebar.header("Navigation")
