@@ -11,7 +11,7 @@
           <mxGeometry height="30" width="60" x="530" y="60" as="geometry" />
         </mxCell>
         <mxCell id="UsVq560RYpwIgdYQ-q79-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Payer Mix" vertex="1">
-          <mxGeometry height="30" width="60" x="150" y="100" as="geometry" />
+          <mxGeometry height="30" width="60" x="150" y="82" as="geometry" />
         </mxCell>
         <mxCell id="UsVq560RYpwIgdYQ-q79-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;ul&gt;&lt;li&gt;Demographics&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;# of people in service area&lt;/li&gt;&lt;li&gt;Services demand of that pop&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Competition&lt;/li&gt;&lt;li&gt;Insurance match (in network)&lt;/li&gt;&lt;li&gt;Appropriate services offered&lt;/li&gt;&lt;/ul&gt;" vertex="1">
           <mxGeometry height="100" width="250" x="530" y="100" as="geometry" />
