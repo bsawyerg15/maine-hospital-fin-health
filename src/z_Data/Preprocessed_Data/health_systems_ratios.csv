@@ -1,0 +1,81 @@
+Hospital,Ratio,FY 2021,FY 2022,FY 2023,FY 2024
+Central Maine Healthcare System,TotalMargin,-0.63,0.24,0.33,-4.95
+Central Maine Healthcare System,OperatingMargin,-3.33,-2.27,-0.85,-4.88
+Central Maine Healthcare System,NonOperatingRevenue,-410.69,1018.96,354.82,1.41
+Central Maine Healthcare System,ReturnonEquity,-1.87,0.82,1.09,-17.73
+Central Maine Healthcare System,CurrentRatiowithoutBoardDesignated&,1.907,1.913,2.209,1.864
+Central Maine Healthcare System,DaysinAccountsReceivable,48.5,38.7,37.7,38.1
+Central Maine Healthcare System,"DaysCashonHand,Current",92.1,59.4,53.8,42.7
+Central Maine Healthcare System,"DaysCashonHand,InclBoardDesignated&",124.3,85.7,81.9,74.7
+Central Maine Healthcare System,"AveragePayPeriod,CurrentLiabilities",82.5,61.3,53.0,55.5
+Central Maine Healthcare System,EquityFinancingRatio,34.36,35.44,37.78,35.05
+Central Maine Healthcare System,FixedAssetFinancing,69.11,69.55,70.81,68.89
+Central Maine Healthcare System,CashFlowDividedbyTotalDebt,5.61,7.14,7.65,-3.69
+Central Maine Healthcare System,DebtServiceCoverage,0.0,2.633,2.128,-0.314
+Central Maine Healthcare System,TotalAssetTurnover,1.015,1.203,1.255,1.255
+Central Maine Healthcare System,FixedAssetTurnover,3.304,3.18,3.547,3.714
+Central Maine Healthcare System,AverageAgeofPlantDepreciationOnly,18.6,21.0,22.1,26.9
+Maine Medical Center and Subsidiaries,TotalMargin,3.4,-1.66,1.27,2.54
+Maine Medical Center and Subsidiaries,OperatingMargin,3.48,-2.0,0.15,1.67
+Maine Medical Center and Subsidiaries,NonOperatingRevenue,-2.4,-20.29,88.14,34.9
+Maine Medical Center and Subsidiaries,ReturnonEquity,16.31,-7.29,5.04,8.57
+Maine Medical Center and Subsidiaries,CurrentRatiowithoutBoardDesignated&,2.652,1.972,1.688,1.895
+Maine Medical Center and Subsidiaries,DaysinAccountsReceivable,44.9,40.8,52.6,53.0
+Maine Medical Center and Subsidiaries,"DaysCashonHand,Current",52.5,32.1,13.5,13.2
+Maine Medical Center and Subsidiaries,"DaysCashonHand,InclBoardDesignated&",52.5,32.1,13.5,13.2
+Maine Medical Center and Subsidiaries,"AveragePayPeriod,CurrentLiabilities",44.6,46.7,51.0,48.4
+Maine Medical Center and Subsidiaries,EquityFinancingRatio,29.09,35.03,39.66,45.95
+Maine Medical Center and Subsidiaries,FixedAssetFinancing,72.51,57.09,51.49,46.8
+Maine Medical Center and Subsidiaries,CashFlowDividedbyTotalDebt,16.02,6.38,13.59,15.37
+Maine Medical Center and Subsidiaries,DebtServiceCoverage,0.0,4.546,10.09,9.534
+Maine Medical Center and Subsidiaries,TotalAssetTurnover,1.393,1.541,1.58,1.55
+Maine Medical Center and Subsidiaries,FixedAssetTurnover,2.563,2.56,2.464,2.464
+Maine Medical Center and Subsidiaries,AverageAgeofPlantDepreciationOnly,10.4,11.3,12.4,16.7
+MaineGeneral Health,TotalMargin,0.27,-0.68,-2.21,-1.51
+MaineGeneral Health,OperatingMargin,-1.7,0.8,-2.82,-1.99
+MaineGeneral Health,NonOperatingRevenue,711.17,219.89,-26.95,-30.67
+MaineGeneral Health,ReturnonEquity,0.75,-2.08,-7.12,-5.33
+MaineGeneral Health,CurrentRatiowithoutBoardDesignated&,1.304,1.755,1.803,1.641
+MaineGeneral Health,DaysinAccountsReceivable,58.6,57.0,53.8,55.6
+MaineGeneral Health,"DaysCashonHand,Current",17.8,17.3,11.6,14.7
+MaineGeneral Health,"DaysCashonHand,InclBoardDesignated&",101.0,62.1,45.4,46.9
+MaineGeneral Health,"AveragePayPeriod,CurrentLiabilities",67.4,52.5,47.4,52.9
+MaineGeneral Health,EquityFinancingRatio,34.09,33.54,34.28,32.89
+MaineGeneral Health,FixedAssetFinancing,76.75,76.53,74.68,74.4
+MaineGeneral Health,CashFlowDividedbyTotalDebt,5.58,4.39,2.22,3.24
+MaineGeneral Health,DebtServiceCoverage,0.0,1.499,0.949,1.044
+MaineGeneral Health,TotalAssetTurnover,0.935,1.028,1.103,1.159
+MaineGeneral Health,FixedAssetTurnover,1.668,1.91,1.935,2.088
+MaineGeneral Health,AverageAgeofPlantDepreciationOnly,13.1,13.2,13.7,13.9
+MaineHealth System,TotalMargin,7.82,-0.1,0.33,2.53
+MaineHealth System,OperatingMargin,4.99,-1.35,-0.45,0.94
+MaineHealth System,NonOperatingRevenue,38.17,-1219.28,235.24,63.53
+MaineHealth System,ReturnonEquity,12.47,-0.18,0.6,4.61
+MaineHealth System,CurrentRatiowithoutBoardDesignated&,3.079,2.979,3.134,3.254
+MaineHealth System,DaysinAccountsReceivable,44.5,41.0,48.9,50.5
+MaineHealth System,"DaysCashonHand,Current",214.5,145.2,121.8,125.1
+MaineHealth System,"DaysCashonHand,InclBoardDesignated&",267.2,159.2,136.4,141.1
+MaineHealth System,"AveragePayPeriod,CurrentLiabilities",89.2,65.6,57.0,57.4
+MaineHealth System,EquityFinancingRatio,51.64,53.13,54.96,55.21
+MaineHealth System,FixedAssetFinancing,52.26,47.75,46.74,50.28
+MaineHealth System,CashFlowDividedbyTotalDebt,21.04,8.71,9.82,14.23
+MaineHealth System,DebtServiceCoverage,0.0,2.316,2.535,3.614
+MaineHealth System,TotalAssetTurnover,0.823,0.958,0.999,1.005
+MaineHealth System,FixedAssetTurnover,2.387,2.469,2.49,2.6
+MaineHealth System,AverageAgeofPlantDepreciationOnly,12.3,13.1,14.0,14.5
+Northern Light Health,TotalMargin,4.12,-9.08,-0.09,-5.1
+Northern Light Health,OperatingMargin,2.82,-6.57,-1.67,-7.24
+Northern Light Health,NonOperatingRevenue,32.46,26.02,-1697.63,-38.99
+Northern Light Health,ReturnonEquity,11.39,-29.48,-0.32,-21.7
+Northern Light Health,CurrentRatiowithoutBoardDesignated&,1.51,1.321,1.396,1.03
+Northern Light Health,DaysinAccountsReceivable,54.2,51.5,54.0,54.8
+Northern Light Health,"DaysCashonHand,Current",61.4,19.9,20.9,14.1
+Northern Light Health,"DaysCashonHand,InclBoardDesignated&",138.4,77.5,73.2,69.4
+Northern Light Health,"AveragePayPeriod,CurrentLiabilities",96.7,71.2,76.2,100.4
+Northern Light Health,EquityFinancingRatio,35.66,33.52,32.36,26.02
+Northern Light Health,FixedAssetFinancing,67.27,62.97,66.71,65.81
+Northern Light Health,CashFlowDividedbyTotalDebt,10.68,-9.49,5.02,-2.64
+Northern Light Health,DebtServiceCoverage,0.0,-2.571,2.091,-0.311
+Northern Light Health,TotalAssetTurnover,0.986,1.088,1.14,1.106
+Northern Light Health,FixedAssetTurnover,2.548,2.418,2.446,2.48
+Northern Light Health,AverageAgeofPlantDepreciationOnly,14.2,13.9,14.0,13.7
