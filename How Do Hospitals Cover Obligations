@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="29.4.0">
   <diagram name="Page-1" id="bufAa2W580TN-PziJ7Rh">
-    <mxGraphModel dx="1148" dy="681" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="976" dy="579" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -97,7 +97,7 @@
             <mxPoint x="410" y="420" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="n1ARSLdLEbi4KE-kB8fP-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="f(cash + liquid investments of system)" vertex="1">
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="f(cash + liquid investments of system, draw of other obligations)" vertex="1">
           <mxGeometry height="30" width="120" x="350" y="530" as="geometry" />
         </mxCell>
         <mxCell id="n1ARSLdLEbi4KE-kB8fP-3" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
