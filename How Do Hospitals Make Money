@@ -1,0 +1,98 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="29.4.0">
+  <diagram name="Page-1" id="YJmq15JmDkPQDMsGuBWf">
+    <mxGraphModel dx="976" dy="579" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-15" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S1zLbJDkvtxUM2FSxEG1-5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="340" />
+              <mxPoint x="510" y="340" />
+              <mxPoint x="510" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-17" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S1zLbJDkvtxUM2FSxEG1-16">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="540" y="320" />
+              <mxPoint x="540" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-1" parent="1" style="sketch=0;verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;fillColor=#000000;align=center;outlineConnect=0;pointerEvents=1;shape=mxgraph.citrix2.hospital;" value="" vertex="1">
+          <mxGeometry height="44.2" width="50" x="400" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Staff (Medical, facility, admin)" vertex="1">
+          <mxGeometry height="60" width="60" x="570" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-22" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S1zLbJDkvtxUM2FSxEG1-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-23" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S1zLbJDkvtxUM2FSxEG1-21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Supplies" vertex="1">
+          <mxGeometry height="60" width="60" x="570" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Debt Service" vertex="1">
+          <mxGeometry height="60" width="60" x="570" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Capital Investments" vertex="1">
+          <mxGeometry height="60" width="60" x="570" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-9" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="S1zLbJDkvtxUM2FSxEG1-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="250" />
+              <mxPoint x="300" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Patient Revenue" vertex="1">
+          <mxGeometry height="60" width="70" x="200" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-11" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="S1zLbJDkvtxUM2FSxEG1-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="335" y="354" />
+              <mxPoint x="335" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Other Revenue" vertex="1">
+          <mxGeometry height="60" width="70" x="200" y="324.2" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-10" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" value="" vertex="1">
+          <mxGeometry height="160" width="50" x="520" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-12" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="S1zLbJDkvtxUM2FSxEG1-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="485" y="280" />
+              <mxPoint x="485" y="190" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-13" connectable="0" parent="S1zLbJDkvtxUM2FSxEG1-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Opex" vertex="1">
+          <mxGeometry relative="1" x="0.0445" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-14" edge="1" parent="1" source="S1zLbJDkvtxUM2FSxEG1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=-0.033;entryY=0.367;entryDx=0;entryDy=0;entryPerimeter=0;" target="S1zLbJDkvtxUM2FSxEG1-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Taxes" vertex="1">
+          <mxGeometry height="60" width="60" x="570" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-19" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Drugs" vertex="1">
+          <mxGeometry height="40" width="60" x="690" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-21" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Operating Equip." vertex="1">
+          <mxGeometry height="40" width="60" x="690" y="240" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

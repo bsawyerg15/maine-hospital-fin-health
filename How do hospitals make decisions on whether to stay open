@@ -1,0 +1,47 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="29.4.0">
+  <diagram name="Page-1" id="4iDOzFEMXRd6PJnE1Cfc">
+    <mxGraphModel dx="976" dy="579" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-1" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Influence of ownership structure?" vertex="1">
+          <mxGeometry height="180" width="140" x="120" y="80" as="geometry">
+            <mxRectangle height="30" width="160" x="120" y="80" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-2" parent="V2UyLl7N-wf4qsfCaVhk-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="PE" vertex="1">
+          <mxGeometry height="30" width="140" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-3" parent="V2UyLl7N-wf4qsfCaVhk-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Non-profit" vertex="1">
+          <mxGeometry height="30" width="140" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-4" parent="V2UyLl7N-wf4qsfCaVhk-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="For profit" vertex="1">
+          <mxGeometry height="30" width="140" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-6" parent="V2UyLl7N-wf4qsfCaVhk-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Part of system vs independent?" vertex="1">
+          <mxGeometry height="30" width="140" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-7" parent="V2UyLl7N-wf4qsfCaVhk-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" value="Physician owned" vertex="1">
+          <mxGeometry height="30" width="140" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-10" edge="1" parent="1" source="V2UyLl7N-wf4qsfCaVhk-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="440" y="170" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Profitability" vertex="1">
+          <mxGeometry height="60" width="120" x="380" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Opportunity Cost" vertex="1">
+          <mxGeometry height="60" width="120" x="560" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Imagine this is something like backward looking bad + forward looking bad as well" vertex="1">
+          <mxGeometry height="30" width="170" x="355" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="V2UyLl7N-wf4qsfCaVhk-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Historical should be sufficient for our purpose in this world for first cut. Would obviously be helpful to have a forward estimate as well." vertex="1">
+          <mxGeometry height="30" width="170" x="355" y="250" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
