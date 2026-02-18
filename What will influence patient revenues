@@ -1,9 +1,27 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="29.4.0">
   <diagram name="Page-1" id="iiuCjiV7E5GGbpksz69z">
-    <mxGraphModel>
+    <mxGraphModel dx="976" dy="579" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="UsVq560RYpwIgdYQ-q79-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;u&gt;Price&lt;/u&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="150" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UsVq560RYpwIgdYQ-q79-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;u&gt;Quantity&lt;/u&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="530" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="UsVq560RYpwIgdYQ-q79-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Payer Mix" vertex="1">
+          <mxGeometry height="30" width="60" x="150" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="UsVq560RYpwIgdYQ-q79-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;ul&gt;&lt;li&gt;Demographics&lt;br&gt;&lt;/li&gt;&lt;ul&gt;&lt;li&gt;# of people in service area&lt;/li&gt;&lt;li&gt;Services demand of that pop&lt;/li&gt;&lt;/ul&gt;&lt;li&gt;Competition&lt;/li&gt;&lt;li&gt;Insurance match (in network)&lt;/li&gt;&lt;li&gt;Appropriate services offered&lt;/li&gt;&lt;/ul&gt;" vertex="1">
+          <mxGeometry height="100" width="250" x="530" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="UsVq560RYpwIgdYQ-q79-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;u&gt;Mix&lt;/u&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="370" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="UsVq560RYpwIgdYQ-q79-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;ul&gt;&lt;li style=&quot;&quot;&gt;Quality of facility&lt;br&gt;&lt;/li&gt;&lt;li style=&quot;&quot;&gt;Quality of staff&lt;/li&gt;&lt;/ul&gt;" vertex="1">
+          <mxGeometry height="40" width="360" x="290" y="250" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
