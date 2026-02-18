@@ -51,10 +51,13 @@
         <mxCell id="LUnO3j_jdLeCL6B7rVRU-14" edge="1" parent="1" source="LUnO3j_jdLeCL6B7rVRU-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="LUnO3j_jdLeCL6B7rVRU-1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="LUnO3j_jdLeCL6B7rVRU-16" connectable="0" parent="LUnO3j_jdLeCL6B7rVRU-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Patient&amp;nbsp;&lt;div&gt;Revenues&lt;/div&gt;" vertex="1">
+        <mxCell id="LUnO3j_jdLeCL6B7rVRU-16" connectable="0" parent="LUnO3j_jdLeCL6B7rVRU-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Realized&amp;nbsp;&lt;div&gt;Patient&amp;nbsp;&lt;div&gt;Revenues&lt;/div&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry relative="1" x="-0.075" y="-1" as="geometry">
             <mxPoint x="-5" as="offset" />
           </mxGeometry>
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-6" edge="1" parent="1" source="LUnO3j_jdLeCL6B7rVRU-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fillColor=#f8cecc;strokeColor=#b85450;" target="n1ARSLdLEbi4KE-kB8fP-5">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="LUnO3j_jdLeCL6B7rVRU-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" value="Accounts Receivable" vertex="1">
           <mxGeometry height="80" width="80" x="200" y="262.1" as="geometry" />
@@ -87,6 +90,27 @@
         </mxCell>
         <mxCell id="LUnO3j_jdLeCL6B7rVRU-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Health System" vertex="1">
           <mxGeometry height="60" width="90" x="235" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-1" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="410" y="520" as="sourcePoint" />
+            <mxPoint x="410" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="f(cash + liquid investments of system)" vertex="1">
+          <mxGeometry height="30" width="120" x="350" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-3" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="190" y="560" as="sourcePoint" />
+            <mxPoint x="190" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="f(system credit rating, interest rates)" vertex="1">
+          <mxGeometry height="30" width="120" x="130" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="n1ARSLdLEbi4KE-kB8fP-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Bad Debts" vertex="1">
+          <mxGeometry height="60" width="95" x="192.5" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
