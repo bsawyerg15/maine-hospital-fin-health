@@ -10,7 +10,7 @@ output_base = sys.argv[2] if len(sys.argv) > 2 else 'hospital'
 
 # Function to clean dollar values
 def clean_dollar_value(value):
-    if pd.isna(value) or value == '' or value == '' or value == '-' or value == '(cid:132)':
+    if pd.isna(value) or value == '' or value == '' or value == '-' or value == '(cid:132)' or value == 'Ä†' or value == '†':
         return np.nan
     value = str(value).strip()
     if value.startswith('(') and value.endswith(')'):
@@ -34,6 +34,7 @@ with pdfplumber.open(pdf_path) as pdf:
     current_hospital = None
     start_parsing = False
     years = ['2020', '2021', '2022', '2023', '2024']  # default
+    years_parsed = False
 
     # Iterate through all pages
     for page_num, page in enumerate(pdf.pages):
@@ -47,9 +48,8 @@ with pdfplumber.open(pdf_path) as pdf:
             if not lines:
                 continue
 
-            # Get hospital name from first line
+            # Get hospital name from third or fourth line
             first_line = lines[0].strip()
-            hospital_name = re.sub(r'\s*\(continued\)$', '', first_line).strip()
 
             # Update current hospital
             if "(continued)" in first_line:
@@ -57,6 +57,16 @@ with pdfplumber.open(pdf_path) as pdf:
                 pass
             else:
                 # New hospital
+                third_line = lines[2].strip() if len(lines) > 2 else ""
+                fourth_line = lines[3].strip() if len(lines) > 3 else ""
+                # Use the line that contains " -- "
+                if " -- " in third_line:
+                    hospital_line = third_line
+                elif " -- " in fourth_line:
+                    hospital_line = fourth_line
+                else:
+                    hospital_line = third_line  # fallback
+                hospital_name = hospital_line.split(" -- ")[0].strip() if " -- " in hospital_line else hospital_line
                 current_hospital = hospital_name
                 print(f"Processing {hospital_name}")
 
@@ -66,16 +76,25 @@ with pdfplumber.open(pdf_path) as pdf:
             should_parse = 'DATA ELEMENTS' in text or (current_hospital == hospital_name and 'RATIOS' not in text)
 
             if should_parse and start_parsing:
+                # Parse years if not already parsed
+                if not years_parsed:
+                    for ln in lines:
+                        ln = ln.strip()
+                        if 'FY' in ln:
+                            parts = ln.split()
+                            years = [p for p in parts if p.isdigit() and len(p) == 4][:5]
+                            years_parsed = True
+                            break
+
                 # Parse the DATA ELEMENTS section
-                in_data = should_parse  # True for both first and continuation pages
+                in_data = False
                 for line in lines:
                     line = line.strip()
                     if 'DATA ELEMENTS' in line:
                         in_data = True
                         continue
                     elif in_data:
-                        if line.startswith('FY '):
-                            years = line.split()[1:]
+                        if 'FY' in line:
                             continue
                         elif not line or 'RATIOS' in line:
                             if 'RATIOS' in line:
@@ -88,7 +107,7 @@ with pdfplumber.open(pdf_path) as pdf:
                             # Find the index of the first value (numeric or starts with '(')
                             value_start = None
                             for i, part in enumerate(parts):
-                                if re.match(r'^-?\d', part) or part.startswith('(') or part in ['-', '', '(cid:132)']:
+                                if re.match(r'^-?\d', part) or part.startswith('(') or part in ['-', '', '(cid:132)', 'Ä†', '†']:
                                     value_start = i
                                     break
                             if value_start is not None and value_start > 0:

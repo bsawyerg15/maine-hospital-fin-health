@@ -10,7 +10,7 @@ max_pad = 4 if 'health' in output_base else 5
 
 # Function to clean ratio values
 def clean_value(value):
-    if pd.isna(value) or value == '':
+    if pd.isna(value) or value == '' or value == '' or value == '-' or value == '(cid:132)' or value == 'Ä†' or value == '†' or value in ['N/A', 'n/a', 'NA', 'na']:
         return None
     value = str(value).strip()
     if value.startswith('(') and value.endswith(')'):
@@ -44,10 +44,8 @@ with pdfplumber.open(pdf_path) as pdf:
     current_hospital = None
     start_parsing = False
     printed = False
-    if 'health' in output_base:
-        years = ['2021', '2022', '2023', '2024']
-    else:
-        years = ['2020', '2021', '2022', '2023', '2024']
+    years = ['2020', '2021', '2022', '2023', '2024']  # default
+    years_parsed = False
 
     # Iterate through all pages
     for page_num, page in enumerate(pdf.pages):
@@ -57,17 +55,29 @@ with pdfplumber.open(pdf_path) as pdf:
             if not text:
                 continue
 
-            # Get hospital name from first line
             lines = text.split('\n')
             if not lines:
                 continue
+
+            # Get hospital name from third or fourth line
             first_line = lines[0].strip()
-            hospital_name = re.sub(r'\s*\(continued\)$', '', first_line).strip()
 
             # Update current hospital
             if "(continued)" in first_line:
+                # Continuation page, keep current_hospital
                 pass
             else:
+                # New hospital
+                third_line = lines[2].strip() if len(lines) > 2 else ""
+                fourth_line = lines[3].strip() if len(lines) > 3 else ""
+                # Use the line that contains " -- "
+                if " -- " in third_line:
+                    hospital_line = third_line
+                elif " -- " in fourth_line:
+                    hospital_line = fourth_line
+                else:
+                    hospital_line = third_line  # fallback
+                hospital_name = hospital_line.split(" -- ")[0].strip() if " -- " in hospital_line else hospital_line
                 current_hospital = hospital_name
                 print(f"Processing {hospital_name}")
 
@@ -80,23 +90,27 @@ with pdfplumber.open(pdf_path) as pdf:
             should_parse = 'RATIOS' in text or (current_hospital == hospital_name and start_parsing)
 
             if should_parse and start_parsing:
+                # Parse years if not already parsed
+                if not years_parsed:
+                    for ln in lines:
+                        ln = ln.strip()
+                        if 'FY' in ln:
+                            parts = ln.split()
+                            years = [p for p in parts if p.isdigit() and len(p) == 4][:5]
+                            years_parsed = True
+                            break
+
                 # Parse the RATIOS section
-                in_ratios = 'RATIOS' in text
                 current_category = None
+                in_ratios = False
 
                 for line in lines:
                     line = line.strip()
-                    if line == 'RATIOS':
+                    if 'RATIOS' in line:
                         in_ratios = True
                         continue
-                    elif in_ratios:
-                        if line.startswith('FY '):
-                            years = line.split()[1:]
-                            # Extend years if needed
-                            while len(years) < max_pad:
-                                years.append(str(int(years[-1]) + 1))
-                            continue
-                        elif not line:
+                    if in_ratios:
+                        if not line:
                             continue
                         # Check if it's a category header (no numbers)
                         if not re.search(r'\d', line) and len(line) > 3:
@@ -108,8 +122,9 @@ with pdfplumber.open(pdf_path) as pdf:
                             parts = line.split()
                             if len(parts) >= 2:
                                 value_start = None
+                                special_chars = ['†', '', '-', '(cid:132)', 'Ä†', 'N/A', 'n/a', 'NA', 'na']
                                 for i, part in enumerate(parts):
-                                    if re.match(r'^-?\d|\(', part):
+                                    if re.match(r'^-?(\d|\.)|\(', part) or part in special_chars:
                                         value_start = i
                                         break
                                 if value_start is not None and value_start > 0:
@@ -150,9 +165,5 @@ print("\nSample of the data:")
 print(df.head(10))
 
 # Save to CSV
-df.to_csv(f'src/z_Data/Preprocessed_Data/{output_base}_ratios.csv')
-print(f"\nSaved to src/z_Data/Preprocessed_Data/{output_base}_ratios.csv")
-
-# Save to pickle
-df.to_pickle(f'src/z_Data/Preprocessed_Data/{output_base}_ratios.pkl')
-print(f"Saved to src/z_Data/Preprocessed_Data/{output_base}_ratios.pkl")
+df.to_csv(f'src/z_Data/Preprocessed_Data/{output_base}.csv')
+print(f"\nSaved to src/z_Data/Preprocessed_Data/{output_base}.csv")
