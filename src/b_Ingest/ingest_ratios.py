@@ -20,9 +20,9 @@ def ingest_single_csv(file_path: str, entity: str = 'Hospital', measure: str = '
     return df
 
 
-def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
+def clean_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Processes and cleans the DataFrame:
+    Cleans the DataFrame:
     - Removes 'FY ' prefix from columns
     - Sorts year columns numerically
     - Maps hospital and measure names to standardized versions using GlobalConstants
@@ -48,10 +48,88 @@ def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
         names=df.index.names
     )
 
-    # Sort index for consistency
-    df = df.sort_index()
-
     return df
+
+
+def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Augments the input DataFrame with a 'Parent' level in the MultiIndex.
+    Scans rows in scraped order (preserved), assigns parent metadata based on hardcoded parents.
+    
+    Args:
+        df (pd.DataFrame): Cleaned DataFrame with MultiIndex (Hospital, Measure)
+    
+    Returns:
+        pd.DataFrame: Augmented with MultiIndex (Hospital, Measure, Parent)
+    """
+    parent_measures = [
+        "Total Current Assets",
+        "Total Non-Current Assets",
+        "Total Unrestricted Assets",
+        "Fund Balance Unrestricted",
+        "Total Liabilities and Equity",
+        "Total Restricted Assets",
+        "Total Restricted Liabilities and Equity",
+        "Total Gross Patient Service Revenue",
+        "Total Operating Revenue",
+        "Total Operating Expenses",
+        "Net Operating Income",
+        "Total Non-Operating Revenue",
+        "Excess of Revenue Over Expenses",
+        "Total Surplus/Deficit",
+        "Total Change in Unrestricted Net Assets"
+    ]
+    
+    df_reset = df.reset_index()
+    df_reset["Parent"] = ""
+    
+    for hospital, group in df_reset.groupby("Hospital"):
+        current_parent = None
+        for idx in group.index:
+            measure = df_reset.at[idx, "Measure"]
+            if measure in parent_measures:
+                df_reset.at[idx, "Parent"] = ""
+                current_parent = measure
+            else:
+                df_reset.at[idx, "Parent"] = current_parent if current_parent else ""
+    
+    # Set new MultiIndex
+    df_aug = df_reset.set_index(["Hospital", "Measure", "Parent"])
+    return df_aug
+
+
+def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Full processing pipeline for a single financial input DataFrame:
+    - Cleans the DataFrame (removes 'FY ', maps names)
+    - Augments with parent-level data (if applicable)
+    - Renames measures by hierarchy to ensure unique (Hospital, Measure) pairs
+    """
+    df_clean = clean_financial_input_df(df)
+    df_augmented = augment_input_df_with_parent(df_clean)
+    df_renamed = rename_measures_by_hierarchy(df_augmented)
+    return df_renamed
+
+
+def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Renames measures based on MEASURE_HIERAERCHY_RENAMES mapping using (Measure, Parent) key.
+    Output keyed on (Hospital, Measure) with all pairs unique.
+
+    Args:
+        df (pd.DataFrame): Input with MultiIndex (Hospital, Measure, Parent)
+
+    Returns:
+        pd.DataFrame: Output with MultiIndex (Hospital, Measure)
+    """
+    hierarchy_renames = GlobalConstants.MEASURE_HIERAERCHY_RENAMES
+    df_reset = df.reset_index()
+    df_reset['Measure'] = df_reset.apply(
+        lambda row: hierarchy_renames.get((row['Measure'], row['Parent']), row['Measure']),
+        axis=1
+    )
+    df_renamed = df_reset.set_index(['Hospital', 'Measure']).drop(columns=['Parent'])
+    return df_renamed
 
 
 def create_combined_financial_df(directory: str, file_list: list[str], entity: str = 'Hospital', measure: str = 'Ratio') -> pd.DataFrame:
