@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from src.a_Config.global_constants import GlobalConstants
+from a_Config.global_constants import GlobalConstants
 
 
 def ingest_single_csv(file_path: str, entity: str = 'Hospital', measure: str = 'Ratio') -> pd.DataFrame:
@@ -66,6 +66,8 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
         "Total Current Assets",
         "Total Non-Current Assets",
         "Total Unrestricted Assets",
+        "Total Current Liabilities",
+        "Total Non-Current Liabilities",
         "Fund Balance Unrestricted",
         "Total Liabilities and Equity",
         "Total Restricted Assets",
@@ -129,6 +131,9 @@ def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
         axis=1
     )
     df_renamed = df_reset.set_index(['Hospital', 'Measure']).drop(columns=['Parent'])
+
+    assert df_renamed.index.is_unique, f"Non-unique index elements: {df_renamed.index[df_renamed.index.duplicated()].tolist()}"
+
     return df_renamed
 
 
