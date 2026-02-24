@@ -1,0 +1,20 @@
+2026-02-24 15:35:50.979 
+Warning: the config option 'server.enableCORS=false' is not compatible with
+'server.enableXsrfProtection=true'.
+As a result, 'server.enableCORS' is being overridden to 'true'.
+
+More information:
+In order to protect against CSRF attacks, we send a cookie with each request.
+To do so, we must specify allowable origins, which places a restriction on
+cross-origin resource sharing.
+
+If cross origin resource sharing is required, please disable server.enableXsrfProtection.
+            
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8503
+  Network URL: http://192.168.103.206:8503
+
+/Users/brooksgingrich/maine-hospital-fin-health/src/main.py:92: DeprecationWarning: The 'reload_data' parameter has been removed and has no effect.
+  AgGrid(

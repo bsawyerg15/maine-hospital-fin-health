@@ -1,6 +1,11 @@
 import os
 import pandas as pd
-from a_Config.global_constants import GlobalConstants
+from a_Config.global_constants import (
+    HOSPITAL_MAPPINGS,
+    MEASURE_MAPPINGS,
+    MEASURE_HIERARCHY_RENAMES,
+    VALID_MEASURES
+)
 
 
 def ingest_single_csv(file_path: str, entity: str = 'Hospital', measure: str = 'Ratio') -> pd.DataFrame:
@@ -37,8 +42,8 @@ def clean_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = df.columns.str.replace('FY ', '')
 
     # Map hospital and measure names using global mappings
-    hospital_map = GlobalConstants.HOSPITAL_MAPPINGS
-    measure_map = GlobalConstants.MEASURE_MAPPINGS
+    hospital_map = HOSPITAL_MAPPINGS
+    measure_map = MEASURE_MAPPINGS
 
     new_hospitals = df.index.get_level_values(0).map(lambda x: hospital_map.get(x, x))
     new_measures = df.index.get_level_values(1).map(lambda x: measure_map.get(x, x))
@@ -72,6 +77,7 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
         "Total Liabilities and Equity",
         "Total Restricted Assets",
         "Total Restricted Liabilities and Equity",
+        "Total Restricted Fund Balance",
         "Total Gross Patient Service Revenue",
         "Total Operating Revenue",
         "Total Operating Expenses",
@@ -106,10 +112,12 @@ def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     - Cleans the DataFrame (removes 'FY ', maps names)
     - Augments with parent-level data (if applicable)
     - Renames measures by hierarchy to ensure unique (Hospital, Measure) pairs
+    - Verifies all measures against fin_statement_model.csv
     """
     df_clean = clean_financial_input_df(df)
     df_augmented = augment_input_df_with_parent(df_clean)
     df_renamed = rename_measures_by_hierarchy(df_augmented)
+    verify_measures_against_model(df_renamed)
     return df_renamed
 
 
@@ -124,7 +132,7 @@ def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: Output with MultiIndex (Hospital, Measure)
     """
-    hierarchy_renames = GlobalConstants.MEASURE_HIERAERCHY_RENAMES
+    hierarchy_renames = MEASURE_HIERARCHY_RENAMES
     df_reset = df.reset_index()
     df_reset['Measure'] = df_reset.apply(
         lambda row: hierarchy_renames.get((row['Measure'], row['Parent']), row['Measure']),
@@ -167,3 +175,17 @@ def create_combined_financial_df(directory: str, file_list: list[str], entity: s
     combined_df = combined_df[year_columns]
     
     return combined_df
+    
+
+def verify_measures_against_model(df: pd.DataFrame) -> None:
+    """
+    Verifies that all measures in the input DataFrame index are present in GlobalConstants.VALID_MEASURES.
+    
+    Raises:
+        ValueError: If invalid measures are found.
+    """
+    valid_measures = VALID_MEASURES
+    input_measures = set(df.index.get_level_values('Measure').unique())
+    invalid = input_measures - valid_measures
+    if invalid:
+        raise ValueError(f"Invalid measures found: {sorted(list(invalid))}")
