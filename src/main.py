@@ -5,6 +5,8 @@ from b_Ingest.ingest_me_financials import create_combined_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from d_Visualizations.aggrid_utils import create_hierarchical_aggrid
+from c_Processing import calculate_residuals
+
 
 # Page configuration
 st.set_page_config(
@@ -25,6 +27,9 @@ files = [
          ]
 dollar_df = create_combined_financial_df(ingest_path, files, measure='Measure')
 
+residual_df = calculate_residuals(dollar_df)
+
+
 st.sidebar.header("Navigation")
 selected_hospital = st.sidebar.selectbox(
     'Select Hospital',
@@ -33,9 +38,15 @@ selected_hospital = st.sidebar.selectbox(
 )
 
 hospital_df = dollar_df.xs(selected_hospital, level='Hospital')
+hospital_residual_df = residual_df.xs(selected_hospital, level='Hospital')
+
 
 st.subheader("Balance Sheet")
 create_hierarchical_aggrid(hospital_df, ['Total Unrestricted Assets', 'Total Liabilities and Equity'])
 
+st.subheader("Balance Sheet Residuals (Children Sum - Parent)")
+create_hierarchical_aggrid(hospital_residual_df, ['Total Unrestricted Assets', 'Total Liabilities and Equity'])
+
 st.subheader("Income Statement")
 create_hierarchical_aggrid(hospital_df, ['Excess of Revenue Over Expenses'])
+

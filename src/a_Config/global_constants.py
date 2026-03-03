@@ -21,6 +21,9 @@ FINANCIAL_STATEMENT_MODEL: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'fin_statement_model.csv')
 ).set_index('Measure')
 
+FINANCIAL_STATEMENT_MODEL['Negate?'] = FINANCIAL_STATEMENT_MODEL['Negate?'].astype(bool)
+FINANCIAL_STATEMENT_MODEL['Neg_Multiplier'] = FINANCIAL_STATEMENT_MODEL['Negate?'].astype(int).replace({1: -1, 0: 1})
+
 VALID_MEASURES: Set[str] = set(FINANCIAL_STATEMENT_MODEL.index.str.strip())
 
 @lru_cache(maxsize=None)
