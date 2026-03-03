@@ -3,7 +3,7 @@ import pandas as pd
 from functools import lru_cache
 from typing import Dict, Set
 
-MAPPINGS_DIR = os.path.dirname(__file__)
+MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')
 
 HOSPITAL_MAPPINGS: Dict[str, str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_name_mappings.csv')

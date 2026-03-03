@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from b_Ingest.ingest_ratios import create_combined_financial_df
+from b_Ingest.ingest_me_financials import create_combined_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from d_Visualizations.aggrid_utils import create_hierarchical_aggrid

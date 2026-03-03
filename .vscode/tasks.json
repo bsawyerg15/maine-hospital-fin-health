@@ -4,8 +4,10 @@
         {
             "label": "Run Streamlit App",
             "type": "shell",
-            "command": "streamlit",
+            "command": "/Users/brooksgingrich/maine-hospital-fin-health/.conda/bin/python",
             "args": [
+                "-m",
+                "streamlit",
                 "run",
                 "src/main.py"
             ],
