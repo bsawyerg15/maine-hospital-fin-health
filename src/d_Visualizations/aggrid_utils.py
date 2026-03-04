@@ -9,7 +9,8 @@ def create_hierarchical_aggrid(hospital_df: pd.DataFrame, roots: list[str], heig
         root_mask = (model['Path'] == root) | model['Path'].str.startswith(root + '/')
         subtree_measures.update(model[root_mask].index)
 
-    df = hospital_df[hospital_df.index.isin(subtree_measures)].reset_index()
+    df = hospital_df.copy()
+    df = df[df.index.isin(subtree_measures)].reset_index()
     df = df.merge(model[['Path']], left_on='Measure', right_index=True, how='left')
     df['hierarchy_path'] = df['Path']
     df.drop('Path', axis=1, inplace=True)
