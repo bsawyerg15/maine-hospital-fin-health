@@ -1,4 +1,4 @@
-Hospital,Ratio,FY 2010,FY 2011,FY 2012,FY 2013,FY 2014
+Organization,Ratio,FY 2010,FY 2011,FY 2012,FY 2013,FY 2014
 Acadia Hospital Corporation,Current Ratio with Board Designated and Undesignated Investments,3.795,3.03,2.329,4.903,2.694
 Acadia Hospital Corporation,Current Ratio without Board Designated and Undesignated Investments,1.922,1.705,1.359,3.064,1.798
 Acadia Hospital Corporation,Days in Accounts Receivable,18.127,13.703,14.613,17.623,23.008
@@ -45,7 +45,7 @@ Acadia Hospital Corporation,Long Term Debt to Equity,1.875,1.326,0.859,0.497,0.4
 "Aroostook Medical Center, The (TAMC)",Debt Service Coverage Total,2.54,4.708,1.314,3.285,0.34
 "Aroostook Medical Center, The (TAMC)",Debt Service Coverage Total with Operating Income Only,2.401,4.438,1.146,3.217,0.369
 "Aroostook Medical Center, The (TAMC)",Total Margin,0.002,0.035,-0.018,0.012,-0.032
-"Aroostook Medical Center, The (TAMC)",Operating Margin,-0.0,0.031,-0.02,0.011,-0.031
+"Aroostook Medical Center, The (TAMC)",Operating Margin,0,0.031,-0.02,0.011,-0.031
 "Aroostook Medical Center, The (TAMC)",Non Operating Revenue Margin,1.216,0.122,-0.148,0.082,0.013
 "Aroostook Medical Center, The (TAMC)",Return On Assets,0.003,0.05,-0.024,0.018,-0.048
 "Aroostook Medical Center, The (TAMC)",Return On Equity,0.006,0.099,-0.053,0.037,-0.118
@@ -56,7 +56,7 @@ Acadia Hospital Corporation,Long Term Debt to Equity,1.875,1.326,0.859,0.497,0.4
 "Aroostook Medical Center, The (TAMC)",Total Asset Turnover,1.472,1.427,1.379,1.47,1.493
 "Aroostook Medical Center, The (TAMC)",Fixed Asset Turnover,3.377,3.6,3.629,3.785,3.443
 "Aroostook Medical Center, The (TAMC)",Average Age Plant Depreciation Only,12.858,13.638,14.533,15.456,15.175
-"Aroostook Medical Center, The (TAMC)",Total Operating Expense Growth,0.011,0.0,0.075,0.0,0.047
+"Aroostook Medical Center, The (TAMC)",Total Operating Expense Growth,0.011,0,0.075,0,0.047
 "Aroostook Medical Center, The (TAMC)",Total Operating Revenue Growth,0.001,0.033,0.021,0.032,0.004
 "Aroostook Medical Center, The (TAMC)",Long Term Debt to Equity,0.364,0.294,0.276,0.232,0.232
 Blue Hill Memorial Hospital,Current Ratio with Board Designated and Undesignated Investments,2.201,2.421,2.629,2.953,3.196
@@ -233,7 +233,7 @@ Charles A. Dean Memorial Hospital,Return On Assets,-0.051,0.212,0.032,0.055,-0.0
 Charles A. Dean Memorial Hospital,Return On Equity,-0.404,0.638,0.097,0.139,-0.068
 Charles A. Dean Memorial Hospital,Markup,1.438,1.342,1.363,1.315,1.222
 Charles A. Dean Memorial Hospital,Deductible,0.301,0.215,0.215,0.196,0.188
-Charles A. Dean Memorial Hospital,Markup Adjustment for Deductible,1.011,1.058,1.077,1.064,1.0
+Charles A. Dean Memorial Hospital,Markup Adjustment for Deductible,1.011,1.058,1.077,1.064,1
 Charles A. Dean Memorial Hospital,Reported Income Index,7.966,0.912,0.677,0.689,0.302
 Charles A. Dean Memorial Hospital,Total Asset Turnover,1.915,1.7,1.421,1.458,1.628
 Charles A. Dean Memorial Hospital,Fixed Asset Turnover,4.085,4.161,3.853,3.971,4.207
@@ -345,7 +345,7 @@ Henrietta D. Goodall Hospital,Fixed Asset Financing,0.635,0.628,0.605,0.565,
 Henrietta D. Goodall Hospital,Cash Flow Divided by Total Debt,0.101,0.095,0.115,0.097,
 Henrietta D. Goodall Hospital,Cash Flow Divided by Total Debt with Operating Income Only,0.108,0.116,0.146,0.06,
 Henrietta D. Goodall Hospital,Debt Service Coverage Total,1.37,1.606,1.633,1.632,
-Henrietta D. Goodall Hospital,Debt Service Coverage Total with Operating Income Only,1.445,1.894,2.0,1.131,
+Henrietta D. Goodall Hospital,Debt Service Coverage Total with Operating Income Only,1.445,1.894,2,1.131,
 Henrietta D. Goodall Hospital,Total Margin,0.002,0.001,0.01,-0.002,
 Henrietta D. Goodall Hospital,Operating Margin,0.005,0.011,0.023,-0.018,
 Henrietta D. Goodall Hospital,Non Operating Revenue Margin,-1.831,-7.073,-1.387,-6.505,
@@ -571,7 +571,7 @@ Mercy Hospital,Return On Equity,-0.184,-0.274,-0.206,-0.185,1.046
 Mercy Hospital,Markup,1.83,1.855,1.843,2.013,2.272
 Mercy Hospital,Deductible,0.42,0.431,0.445,0.47,0.499
 Mercy Hospital,Markup Adjustment for Deductible,1.068,1.063,1.035,1.079,1.151
-Mercy Hospital,Reported Income Index,1.0,1.058,1.156,1.399,7.785
+Mercy Hospital,Reported Income Index,1,1.058,1.156,1.399,7.785
 Mercy Hospital,Total Asset Turnover,0.88,0.979,1.089,1.182,1.496
 Mercy Hospital,Fixed Asset Turnover,1.636,1.82,2.009,2.163,1.828
 Mercy Hospital,Average Age Plant Depreciation Only,7.642,8.244,8.826,9.053,0.995
@@ -630,7 +630,7 @@ Miles Memorial Hospital,Operating Margin,0.016,0.043,0.032,0.039,
 Miles Memorial Hospital,Non Operating Revenue Margin,0.367,0.147,0.253,0.228,
 Miles Memorial Hospital,Return On Assets,0.033,0.065,0.06,0.065,
 Miles Memorial Hospital,Return On Equity,0.048,0.089,0.082,0.094,
-Miles Memorial Hospital,Markup,1.943,1.994,1.954,2.0,
+Miles Memorial Hospital,Markup,1.943,1.994,1.954,2,
 Miles Memorial Hospital,Deductible,0.422,0.421,0.422,0.428,
 Miles Memorial Hospital,Markup Adjustment for Deductible,1.128,1.159,1.143,1.164,
 Miles Memorial Hospital,Reported Income Index,0.129,0.54,-1.573,-36.619,
@@ -678,7 +678,7 @@ Mount Desert Island Hospital,Current Ratio without Board Designated and Undesign
 Mount Desert Island Hospital,Days in Accounts Receivable,36.622,38.491,38.669,46.521,49.657
 Mount Desert Island Hospital,Acid Test,0.091,0.038,0.033,0.03,0.034
 Mount Desert Island Hospital,"Days Cash on Hand, Current",9.416,4.405,4.306,3.965,4.335
-Mount Desert Island Hospital,"Days Cash on Hand, Incl Board Designated & Undesignated Investments",70.0,67.611,51.397,44.603,59.763
+Mount Desert Island Hospital,"Days Cash on Hand, Incl Board Designated & Undesignated Investments",70,67.611,51.397,44.603,59.763
 Mount Desert Island Hospital,"Average Payment Period, Accounts Payable and Accrued Expenses",51.122,66.5,73.088,77.64,64.552
 Mount Desert Island Hospital,"Average Payment Period, Current Liabilities",103.556,114.894,131.057,133.948,127.01
 Mount Desert Island Hospital,Equity Financing Ratio,0.447,0.345,0.3,0.314,0.339
@@ -687,10 +687,10 @@ Mount Desert Island Hospital,Cash Flow Divided by Total Debt,0.085,0.078,0.003,0
 Mount Desert Island Hospital,Cash Flow Divided by Total Debt with Operating Income Only,0.033,0.043,-0.024,0.03,0.013
 Mount Desert Island Hospital,Debt Service Coverage Total,1.723,2.402,0.351,0.647,0.418
 Mount Desert Island Hospital,Debt Service Coverage Total with Operating Income Only,0.866,1.516,0.02,0.54,0.353
-Mount Desert Island Hospital,Total Margin,0.0,0.006,-0.042,-0.016,-0.026
+Mount Desert Island Hospital,Total Margin,0,0.006,-0.042,-0.016,-0.026
 Mount Desert Island Hospital,Operating Margin,-0.024,-0.015,-0.06,-0.023,-0.03
 Mount Desert Island Hospital,Non Operating Revenue Margin,98.577,3.285,-0.41,-0.379,-0.158
-Mount Desert Island Hospital,Return On Assets,0.0,0.007,-0.046,-0.018,-0.029
+Mount Desert Island Hospital,Return On Assets,0,0.007,-0.046,-0.018,-0.029
 Mount Desert Island Hospital,Return On Equity,0.001,0.02,-0.152,-0.058,-0.086
 Mount Desert Island Hospital,Markup,1.384,1.424,1.375,1.423,1.481
 Mount Desert Island Hospital,Deductible,0.244,0.254,0.264,0.276,0.317
@@ -720,7 +720,7 @@ New England Rehabilitation Hospital,Debt Service Coverage Total,5.741,5.503,6.54
 New England Rehabilitation Hospital,Debt Service Coverage Total with Operating Income Only,5.737,5.501,6.541,6.594,8.617
 New England Rehabilitation Hospital,Total Margin,0.204,0.228,0.261,0.243,0.252
 New England Rehabilitation Hospital,Operating Margin,0.204,0.228,0.261,0.243,0.252
-New England Rehabilitation Hospital,Non Operating Revenue Margin,0.001,0.0,0.0,0.0,0.001
+New England Rehabilitation Hospital,Non Operating Revenue Margin,0.001,0,0,0,0.001
 New England Rehabilitation Hospital,Return On Assets,0.32,0.359,0.419,0.388,0.423
 New England Rehabilitation Hospital,Return On Equity,1.184,1.14,1.373,0.838,1.025
 New England Rehabilitation Hospital,Markup,1.794,1.901,1.9,1.92,2.085
@@ -770,7 +770,7 @@ Parkview Adventist Medical Center,"Days Cash on Hand, Current",6.147,12.867,10.0
 Parkview Adventist Medical Center,"Days Cash on Hand, Incl Board Designated & Undesignated Investments",8.898,15.813,12.933,34.505,29.627
 Parkview Adventist Medical Center,"Average Payment Period, Accounts Payable and Accrued Expenses",101.541,69.578,96.988,94.946,145.418
 Parkview Adventist Medical Center,"Average Payment Period, Current Liabilities",185.297,208.074,234.629,213.583,221.532
-Parkview Adventist Medical Center,Equity Financing Ratio,-0.044,0.0,-0.07,-0.186,-0.398
+Parkview Adventist Medical Center,Equity Financing Ratio,-0.044,0,-0.07,-0.186,-0.398
 Parkview Adventist Medical Center,Fixed Asset Financing,0.314,0.237,0.205,0.19,0.149
 Parkview Adventist Medical Center,Cash Flow Divided by Total Debt,0.051,0.156,-0.002,0.052,-0.058
 Parkview Adventist Medical Center,Cash Flow Divided by Total Debt with Operating Income Only,0.047,0.117,-0.002,0.061,-0.058
@@ -784,7 +784,7 @@ Parkview Adventist Medical Center,Return On Equity,1.062,1687.334,1.003,0.193,0.
 Parkview Adventist Medical Center,Markup,2.195,2.307,2.313,2.362,2.279
 Parkview Adventist Medical Center,Deductible,0.506,0.512,0.546,0.58,0.557
 Parkview Adventist Medical Center,Markup Adjustment for Deductible,1.096,1.167,1.078,1.085,1.026
-Parkview Adventist Medical Center,Reported Income Index,-0.214,1.937,1.003,0.409,1.0
+Parkview Adventist Medical Center,Reported Income Index,-0.214,1.937,1.003,0.409,1
 Parkview Adventist Medical Center,Total Asset Turnover,1.863,1.73,1.477,1.946,2.118
 Parkview Adventist Medical Center,Fixed Asset Turnover,4.662,3.893,3.293,4.465,4.986
 Parkview Adventist Medical Center,Average Age Plant Depreciation Only,10.157,12.982,14.358,13.492,15.418
@@ -820,7 +820,7 @@ Penobscot Bay Medical Center,Average Age Plant Depreciation Only,12.901,13.105,1
 Penobscot Bay Medical Center,Total Operating Expense Growth,0.02,-0.019,0.048,0.015,0.037
 Penobscot Bay Medical Center,Total Operating Revenue Growth,-0.012,0.016,-0.003,0.059,0.045
 Penobscot Bay Medical Center,Realized Gains Divided by Non-Operating Revenue,0.001,0.01,,,-0.272
-Penobscot Bay Medical Center,Realized Gains Divided by Net Income,-0.0,0.008,,,-0.518
+Penobscot Bay Medical Center,Realized Gains Divided by Net Income,0,0.008,,,-0.518
 Penobscot Bay Medical Center,Long Term Debt to Equity,0.583,0.527,0.493,0.434,0.509
 Penobscot Valley Hospital,Current Ratio with Board Designated and Undesignated Investments,1.386,1.296,1.424,1.578,1.484
 Penobscot Valley Hospital,Current Ratio without Board Designated and Undesignated Investments,1.235,1.146,1.254,1.364,1.221
@@ -997,14 +997,14 @@ Spring Harbor Hospital,Return On Equity,0.052,0.07,0.078,0.127,
 Spring Harbor Hospital,Markup,1.549,1.594,1.643,1.741,
 Spring Harbor Hospital,Deductible,0.226,0.238,0.247,0.271,
 Spring Harbor Hospital,Markup Adjustment for Deductible,1.207,1.222,1.244,1.277,
-Spring Harbor Hospital,Reported Income Index,-0.825,1.051,0.909,1.0,
+Spring Harbor Hospital,Reported Income Index,-0.825,1.051,0.909,1,
 Spring Harbor Hospital,Total Asset Turnover,0.958,0.86,0.947,0.875,
 Spring Harbor Hospital,Fixed Asset Turnover,1.502,1.574,1.66,1.648,
 Spring Harbor Hospital,Average Age Plant Depreciation Only,7.057,,,,
 Spring Harbor Hospital,Total Operating Expense Growth,-0.011,-0.004,0.015,-0.013,
 Spring Harbor Hospital,Total Operating Revenue Growth,-0.013,0.003,0.019,0.007,
-Spring Harbor Hospital,Realized Gains Divided by Non-Operating Revenue,-0.0,0.162,,,
-Spring Harbor Hospital,Realized Gains Divided by Net Income,-0.0,0.015,,,
+Spring Harbor Hospital,Realized Gains Divided by Non-Operating Revenue,0,0.162,,,
+Spring Harbor Hospital,Realized Gains Divided by Net Income,0,0.015,,,
 Spring Harbor Hospital,Long Term Debt to Equity,2.78,2.514,2.253,1.886,
 St. Andrews Hospital,Current Ratio with Board Designated and Undesignated Investments,1.815,2.211,2.655,2.507,
 St. Andrews Hospital,Current Ratio without Board Designated and Undesignated Investments,1.152,1.367,1.409,1.196,

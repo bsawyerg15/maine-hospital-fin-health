@@ -7,17 +7,17 @@ def calculate_children_sums(df: pd.DataFrame) -> pd.DataFrame:
     Calculate the sum of direct children for each parent line item.
     
     Joins the input dataframe with FINANCIAL_STATEMENT_MODEL to get parent relationships,
-    then groups by Hospital and Parent to sum children values per fiscal year.
-    
+    then groups by Organization and Parent to sum children values per fiscal year.
+
     Args:
-        df: DataFrame from create_combined_financial_df with MultiIndex (Hospital, Measure)
+        df: DataFrame from create_combined_financial_df with MultiIndex (Organization, Measure)
             and fiscal year columns containing values.
-    
+
     Returns:
-        pd.DataFrame with MultiIndex (Hospital, Parent) and fiscal year columns containing
+        pd.DataFrame with MultiIndex (Organization, Parent) and fiscal year columns containing
         sums of direct children values. NaNs filled with 0.
     """
-    # Reset index to make Hospital and Measure columns
+    # Reset index to make Organization and Measure columns
     df_reset = df.reset_index()
     
     # Prepare model with Measure and Parent columns
@@ -34,16 +34,16 @@ def calculate_children_sums(df: pd.DataFrame) -> pd.DataFrame:
     df_with_parent = df_with_parent.dropna(subset=['Parent'])
     df_with_parent = df_with_parent[df_with_parent['Parent'] != '']
     
-    # Group by Hospital and Parent, sum across all children per year column
+    # Group by Organization and Parent, sum across all children per year column
     year_cols = df.columns[df.columns.str.match(r'^\d{4}$')]
-    group_cols = ['Hospital', 'Parent']
+    group_cols = ['Organization', 'Parent']
 
     df_with_parent[year_cols] *= df_with_parent['Neg_Multiplier'].values[:, None]  # Apply negation if needed
     sums_df = df_with_parent.groupby(group_cols)[year_cols].sum()
     
     # Fill NaN with 0
     sums_df = sums_df.fillna(0)
-    sums_df.index.names = ['Hospital', 'Measure']  # Rename Parent to Measure for consistency
+    sums_df.index.names = ['Organization', 'Measure']  # Rename Parent to Measure for consistency
     
     return sums_df
 
@@ -55,7 +55,7 @@ def add_computed_parent_rows(df: pd.DataFrame) -> pd.DataFrame:
     from the input dataframe. Existing rows are left unchanged.
 
     Args:
-        df: DataFrame with MultiIndex (Hospital, Measure) and numeric year columns.
+        df: DataFrame with MultiIndex (Organization, Measure) and numeric year columns.
 
     Returns:
         DataFrame augmented with computed rows for any parent measures not already present.
@@ -75,7 +75,7 @@ def calculate_residuals(df: pd.DataFrame) -> pd.DataFrame:
         df: Same input as calculate_children_sums.
     
     Returns:
-        pd.DataFrame with MultiIndex (Hospital, Measure) containing residuals for parent
+        pd.DataFrame with MultiIndex (Organization, Measure) containing residuals for parent
         measures. NaNs filled with 0.
     """
     children_sums = calculate_children_sums(df)

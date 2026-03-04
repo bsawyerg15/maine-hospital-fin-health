@@ -1,4 +1,4 @@
-Hospital,Ratio,FY 2005,FY 2006,FY 2007,FY 2008,FY 2009
+Organization,Ratio,FY 2005,FY 2006,FY 2007,FY 2008,FY 2009
 Acadia Hospital Corporation,Current Ratio with Board Designated and Undesignated Investments,1.501,0.76,0.902,0.972,1.585
 Acadia Hospital Corporation,Current Ratio without Board Designated and Undesignated Investments,0.976,0.353,0.496,0.46,0.578
 Acadia Hospital Corporation,Days in Accounts Receivable,24.38,15.637,16.829,26.818,22.555
@@ -28,14 +28,14 @@ Acadia Hospital Corporation,Average Age Plant Depreciation Only,11.587,11.788,13
 Acadia Hospital Corporation,Total Operating Expense Growth,0.043,0.086,-0.017,0.051,0.091
 Acadia Hospital Corporation,Total Operating Revenue Growth,0.047,0.067,0.114,-0.055,0.093
 Acadia Hospital Corporation,Realized Gains Divided by Non-Operating Revenue,,-0.002,0.001,0.011,0.001
-Acadia Hospital Corporation,Realized Gains Divided by Net Income,,-0.001,0.0,0.002,0.0
+Acadia Hospital Corporation,Realized Gains Divided by Net Income,,-0.001,0,0.002,0
 Acadia Hospital Corporation,Long Term Debt to Equity,15.786,8.359,1.776,1.966,2.901
 "Aroostook Medical Center, The (TAMC)",Current Ratio with Board Designated and Undesignated Investments,1.656,1.164,0.94,0.898,1.692
 "Aroostook Medical Center, The (TAMC)",Current Ratio without Board Designated and Undesignated Investments,1.417,0.987,0.838,0.787,1.512
 "Aroostook Medical Center, The (TAMC)",Days in Accounts Receivable,36.073,37.931,32.832,35.493,24.404
 "Aroostook Medical Center, The (TAMC)",Acid Test,0.382,0.09,0.137,0.174,0.307
 "Aroostook Medical Center, The (TAMC)","Days Cash on Hand, Current",22.308,5.951,12.593,16.495,18.107
-"Aroostook Medical Center, The (TAMC)","Days Cash on Hand, Incl Board Designated & Undesignated Investments",36.202,17.576,22.0,26.928,28.742
+"Aroostook Medical Center, The (TAMC)","Days Cash on Hand, Incl Board Designated & Undesignated Investments",36.202,17.576,22,26.928,28.742
 "Aroostook Medical Center, The (TAMC)","Average Payment Period, Accounts Payable and Accrued Expenses",45.931,49.865,44.211,44.938,33.263
 "Aroostook Medical Center, The (TAMC)","Average Payment Period, Current Liabilities",58.336,65.961,91.623,94.532,58.893
 "Aroostook Medical Center, The (TAMC)",Equity Financing Ratio,0.485,0.477,0.433,0.434,0.511
@@ -176,7 +176,7 @@ Cary Medical Center,Reported Income Index,0.988,0.933,5.804,0.917,0.851
 Cary Medical Center,Total Asset Turnover,1.747,1.777,1.895,1.81,1.815
 Cary Medical Center,Fixed Asset Turnover,4.271,4.702,4.911,4.541,4.657
 Cary Medical Center,Average Age Plant Depreciation Only,10.712,12.268,14.877,13.743,12.368
-Cary Medical Center,Total Operating Expense Growth,0.0,0.058,0.045,0.071,-0.025
+Cary Medical Center,Total Operating Expense Growth,0,0.058,0.045,0.071,-0.025
 Cary Medical Center,Total Operating Revenue Growth,-0.048,0.022,0.04,0.109,-0.067
 Cary Medical Center,Realized Gains Divided by Non-Operating Revenue,,,,0.009,0.428
 Cary Medical Center,Realized Gains Divided by Net Income,,,,0.001,-0.04
@@ -347,7 +347,7 @@ Henrietta D. Goodall Hospital,Cash Flow Divided by Total Debt with Operating Inc
 Henrietta D. Goodall Hospital,Debt Service Coverage Total,0.299,2.545,4.393,0.898,-1.564
 Henrietta D. Goodall Hospital,Debt Service Coverage Total with Operating Income Only,-0.612,1.574,1.825,1.029,-0.572
 Henrietta D. Goodall Hospital,Total Margin,-0.062,0.019,0.089,-0.035,-0.152
-Henrietta D. Goodall Hospital,Operating Margin,-0.096,-0.011,0.0,-0.029,-0.098
+Henrietta D. Goodall Hospital,Operating Margin,-0.096,-0.011,0,-0.029,-0.098
 Henrietta D. Goodall Hospital,Non Operating Revenue Margin,-0.487,1.596,0.998,0.176,0.322
 Henrietta D. Goodall Hospital,Return On Assets,-0.042,0.015,0.067,-0.025,-0.13
 Henrietta D. Goodall Hospital,Return On Equity,-0.067,0.025,0.125,-0.049,-0.28
@@ -368,7 +368,7 @@ Houlton Regional Hospital,Current Ratio without Board Designated and Undesignate
 Houlton Regional Hospital,Days in Accounts Receivable,59.028,51.521,49.55,47.2,41.172
 Houlton Regional Hospital,Acid Test,0.084,0.058,0.304,0.066,0.403
 Houlton Regional Hospital,"Days Cash on Hand, Current",8.03,5.759,26.183,5.604,35.918
-Houlton Regional Hospital,"Days Cash on Hand, Incl Board Designated & Undesignated Investments",49.82,41.687,64.598,35.0,62.411
+Houlton Regional Hospital,"Days Cash on Hand, Incl Board Designated & Undesignated Investments",49.82,41.687,64.598,35,62.411
 Houlton Regional Hospital,"Average Payment Period, Accounts Payable and Accrued Expenses",47.596,51.211,41.599,39.189,42.437
 Houlton Regional Hospital,"Average Payment Period, Current Liabilities",95.281,99.07,86.073,84.498,89.119
 Houlton Regional Hospital,Equity Financing Ratio,0.233,0.213,0.258,0.303,0.261
@@ -625,10 +625,10 @@ Miles Memorial Hospital,Cash Flow Divided by Total Debt,0.187,0.244,0.051,0.219,
 Miles Memorial Hospital,Cash Flow Divided by Total Debt with Operating Income Only,0.172,0.235,0.034,0.172,0.095
 Miles Memorial Hospital,Debt Service Coverage Total,4.788,6.05,2.869,5.107,1.919
 Miles Memorial Hospital,Debt Service Coverage Total with Operating Income Only,4.447,5.852,2.091,4.127,2.75
-Miles Memorial Hospital,Total Margin,0.027,0.05,-0.0,0.029,-0.017
+Miles Memorial Hospital,Total Margin,0.027,0.05,0,0.029,-0.017
 Miles Memorial Hospital,Operating Margin,0.022,0.047,-0.011,0.016,-0.004
 Miles Memorial Hospital,Non Operating Revenue Margin,0.181,0.061,-47.479,0.455,0.78
-Miles Memorial Hospital,Return On Assets,0.041,0.071,-0.0,0.047,-0.023
+Miles Memorial Hospital,Return On Assets,0.041,0.071,0,0.047,-0.023
 Miles Memorial Hospital,Return On Equity,0.08,0.139,-0.001,0.086,-0.05
 Miles Memorial Hospital,Markup,1.972,2.057,1.936,1.919,1.977
 Miles Memorial Hospital,Deductible,0.453,0.438,0.443,0.42,0.443
@@ -755,7 +755,7 @@ Northern Maine Medical Center,Return On Equity,0.101,0.167,0.11,-0.011,-0.05
 Northern Maine Medical Center,Markup,1.594,1.581,1.557,1.496,1.507
 Northern Maine Medical Center,Deductible,0.344,0.343,0.345,0.344,0.343
 Northern Maine Medical Center,Markup Adjustment for Deductible,1.055,1.048,1.03,0.989,0.997
-Northern Maine Medical Center,Reported Income Index,0.982,1.0,1.0,1.0,1.504
+Northern Maine Medical Center,Reported Income Index,0.982,1,1,1,1.504
 Northern Maine Medical Center,Total Asset Turnover,1.738,1.637,1.544,1.412,1.342
 Northern Maine Medical Center,Fixed Asset Turnover,3.56,3.35,2.961,2.642,2.314
 Northern Maine Medical Center,Average Age Plant Depreciation Only,7.922,8.516,10.067,10.291,9.889
@@ -784,7 +784,7 @@ Parkview Adventist Medical Center,Return On Equity,0.08,0.089,-8.502,1.314,0.409
 Parkview Adventist Medical Center,Markup,2.125,2.135,1.942,2.114,2.174
 Parkview Adventist Medical Center,Deductible,0.497,0.502,0.53,0.547,0.565
 Parkview Adventist Medical Center,Markup Adjustment for Deductible,1.073,1.067,0.916,0.961,0.951
-Parkview Adventist Medical Center,Reported Income Index,1.0,0.908,1.0,1.0,1.0
+Parkview Adventist Medical Center,Reported Income Index,1,0.908,1,1,1
 Parkview Adventist Medical Center,Total Asset Turnover,1.812,1.895,1.825,2.633,2.53
 Parkview Adventist Medical Center,Fixed Asset Turnover,3.607,4.007,3.758,4.339,5.107
 Parkview Adventist Medical Center,Average Age Plant Depreciation Only,6.967,7.449,7.984,8.662,10.224
@@ -911,7 +911,7 @@ Rumford Community Hospital,Average Age Plant Depreciation Only,15.944,14.7,12.28
 Rumford Community Hospital,Total Operating Expense Growth,0.035,0.108,0.15,0.113,0.077
 Rumford Community Hospital,Total Operating Revenue Growth,0.016,0.066,0.192,0.044,0.103
 Rumford Community Hospital,Realized Gains Divided by Non-Operating Revenue,,,0.352,0.002,2.898
-Rumford Community Hospital,Realized Gains Divided by Net Income,,,0.069,0.0,-0.138
+Rumford Community Hospital,Realized Gains Divided by Net Income,,,0.069,0,-0.138
 Rumford Community Hospital,Long Term Debt to Equity,0.169,0.096,0.059,0.055,0.049
 Sebasticook Valley Hospital,Current Ratio with Board Designated and Undesignated Investments,1.958,2.069,1.493,1.338,2.182
 Sebasticook Valley Hospital,Current Ratio without Board Designated and Undesignated Investments,1.429,1.515,1.199,1.015,1.509
@@ -972,8 +972,8 @@ Southern Maine Medical Center,Fixed Asset Turnover,2.977,2.842,2.382,1.896,1.917
 Southern Maine Medical Center,Average Age Plant Depreciation Only,10.975,11.799,12.351,11.851,9.265
 Southern Maine Medical Center,Total Operating Expense Growth,0.068,0.053,0.027,0.055,0.278
 Southern Maine Medical Center,Total Operating Revenue Growth,0.063,0.053,0.034,0.048,0.293
-Southern Maine Medical Center,Realized Gains Divided by Non-Operating Revenue,,,,0.0,-0.148
-Southern Maine Medical Center,Realized Gains Divided by Net Income,,,,0.0,-0.211
+Southern Maine Medical Center,Realized Gains Divided by Non-Operating Revenue,,,,0,-0.148
+Southern Maine Medical Center,Realized Gains Divided by Net Income,,,,0,-0.211
 Southern Maine Medical Center,Long Term Debt to Equity,0.176,0.152,0.393,0.377,0.55
 Spring Harbor Hospital,Current Ratio with Board Designated and Undesignated Investments,1.83,2.234,1.389,2.109,4.538
 Spring Harbor Hospital,Current Ratio without Board Designated and Undesignated Investments,1.83,2.234,1.389,2.109,4.538

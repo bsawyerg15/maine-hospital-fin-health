@@ -8,13 +8,13 @@ from a_Config.global_constants import (
 )
 
 
-def ingest_single_csv(file_path: str, entity: str = 'Hospital', measure: str = 'Ratio') -> pd.DataFrame:
+def ingest_single_csv(file_path: str, entity: str = 'Organization', measure: str = 'Ratio') -> pd.DataFrame:
     """
     Reads a single CSV file and sets the multi-index appropriately.
 
     Args:
         file_path (str): Path to the CSV file
-        entity (str): Name of the first index column (default: 'Hospital')
+        entity (str): Name of the first index column (default: 'Organization')
         measure (str): Name of the second index column (default: 'Ratio')
 
     Returns:
@@ -33,7 +33,7 @@ def clean_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     - Maps hospital and measure names to standardized versions using GlobalConstants
 
     Args:
-        df (pd.DataFrame): Input DataFrame with multi-index (Hospital, Ratio/Measure)
+        df (pd.DataFrame): Input DataFrame with multi-index (Organization, Ratio/Measure)
 
     Returns:
         pd.DataFrame: Cleaned DataFrame
@@ -62,10 +62,10 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
     Scans rows in scraped order (preserved), assigns parent metadata based on hardcoded parents.
     
     Args:
-        df (pd.DataFrame): Cleaned DataFrame with MultiIndex (Hospital, Measure)
-    
+        df (pd.DataFrame): Cleaned DataFrame with MultiIndex (Organization, Measure)
+
     Returns:
-        pd.DataFrame: Augmented with MultiIndex (Hospital, Measure, Parent)
+        pd.DataFrame: Augmented with MultiIndex (Organization, Measure, Parent)
     """
     parent_measures = [
         "Total Current Assets",
@@ -91,7 +91,7 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
     df_reset = df.reset_index()
     df_reset["Parent"] = ""
     
-    for hospital, group in df_reset.groupby("Hospital"):
+    for hospital, group in df_reset.groupby("Organization"):
         current_parent = None
         for idx in group.index:
             measure = df_reset.at[idx, "Measure"]
@@ -102,7 +102,7 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
                 df_reset.at[idx, "Parent"] = current_parent if current_parent else ""
     
     # Set new MultiIndex
-    df_aug = df_reset.set_index(["Hospital", "Measure", "Parent"])
+    df_aug = df_reset.set_index(["Organization", "Measure", "Parent"])
     return df_aug
 
 
@@ -111,7 +111,7 @@ def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     Full processing pipeline for a single financial input DataFrame:
     - Cleans the DataFrame (removes 'FY ', maps names)
     - Augments with parent-level data (if applicable)
-    - Renames measures by hierarchy to ensure unique (Hospital, Measure) pairs
+    - Renames measures by hierarchy to ensure unique (Organization, Measure) pairs
     - Verifies all measures against fin_statement_model.csv
     """
     df_clean = clean_financial_input_df(df)
@@ -124,13 +124,13 @@ def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
 def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
     """
     Renames measures based on MEASURE_HIERAERCHY_RENAMES mapping using (Measure, Parent) key.
-    Output keyed on (Hospital, Measure) with all pairs unique.
+    Output keyed on (Organization, Measure) with all pairs unique.
 
     Args:
-        df (pd.DataFrame): Input with MultiIndex (Hospital, Measure, Parent)
+        df (pd.DataFrame): Input with MultiIndex (Organization, Measure, Parent)
 
     Returns:
-        pd.DataFrame: Output with MultiIndex (Hospital, Measure)
+        pd.DataFrame: Output with MultiIndex (Organization, Measure)
     """
     hierarchy_renames = MEASURE_HIERARCHY_RENAMES
     df_reset = df.reset_index()
@@ -138,14 +138,14 @@ def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
         lambda row: hierarchy_renames.get((row['Measure'], row['Parent']), row['Measure']),
         axis=1
     )
-    df_renamed = df_reset.set_index(['Hospital', 'Measure']).drop(columns=['Parent'])
+    df_renamed = df_reset.set_index(['Organization', 'Measure']).drop(columns=['Parent'])
 
     assert df_renamed.index.is_unique, f"Non-unique index elements: {df_renamed.index[df_renamed.index.duplicated()].tolist()}"
 
     return df_renamed
 
 
-def create_combined_financial_df(directory: str, file_list: list[str], entity: str = 'Hospital', measure: str = 'Ratio') -> pd.DataFrame:
+def create_combined_financial_df(directory: str, file_list: list[str], entity: str = 'Organization', measure: str = 'Ratio') -> pd.DataFrame:
     """
     Stitches multiple CSV files together:
     - Ingests each (read + index)
@@ -155,7 +155,7 @@ def create_combined_financial_df(directory: str, file_list: list[str], entity: s
     Args:
         directory (str): Directory containing CSV files
         file_list (list[str]): List of CSV filenames
-        entity (str): First index column (default: 'Hospital')
+        entity (str): First index column (default: 'Organization')
         measure (str): Second index column (default: 'Ratio')
 
     Returns:

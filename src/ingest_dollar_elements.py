@@ -119,7 +119,7 @@ with pdfplumber.open(pdf_path) as pdf:
                                 value_parts = value_parts[:5]
                                 values = [clean_dollar_value(v) for v in value_parts]
                                 # Append
-                                data_dict = {'Hospital': current_hospital, 'Measure': measure}
+                                data_dict = {'Organization': current_hospital, 'Measure': measure}
                                 for i, val in enumerate(values):
                                     col = f'FY {years[i] if i < len(years) else str(2020 + i)}'
                                     data_dict[col] = val
@@ -132,7 +132,7 @@ with pdfplumber.open(pdf_path) as pdf:
 df = pd.DataFrame(data)
 
 # Set multi-index
-df.set_index(['Hospital', 'Measure'], inplace=True)
+df.set_index(['Organization', 'Measure'], inplace=True)
 
 print(f"Successfully extracted {len(df)} data element records from {len(df.index.levels[0])} hospitals")
 print("\nDataFrame shape:", df.shape)

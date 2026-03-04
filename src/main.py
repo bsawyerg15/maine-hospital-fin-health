@@ -31,14 +31,14 @@ residual_df = calculate_residuals(dollar_df)
 
 
 st.sidebar.header("Navigation")
-selected_hospital = st.sidebar.selectbox(
-    'Select Hospital',
-    options=sorted(dollar_df.index.get_level_values('Hospital').unique().tolist()),
+selected_organization = st.sidebar.selectbox(
+    'Select Organization',
+    options=sorted(dollar_df.index.get_level_values('Organization').unique().tolist()),
     index=0
 )
 
-hospital_df = dollar_df.xs(selected_hospital, level='Hospital')
-hospital_residual_df = residual_df.xs(selected_hospital, level='Hospital')
+hospital_df = dollar_df.xs(selected_organization, level='Organization')
+hospital_residual_df = residual_df.xs(selected_organization, level='Organization')
 
 
 st.subheader("Balance Sheet")

@@ -1,4 +1,4 @@
-Hospital,Ratio,FY 2015,FY 2016,FY 2017,FY 2018,FY 2019
+Organization,Ratio,FY 2015,FY 2016,FY 2017,FY 2018,FY 2019
 Acadia Hospital Corporation,Current Ratio with Board Designated and Undesignated Investments,2.569,3.095,1.901,2.022,3.534
 Acadia Hospital Corporation,Current Ratio without Board Designated and Undesignated Investments,1.809,2.113,1.887,2.012,3.52
 Acadia Hospital Corporation,Days in Accounts Receivable,23.847,20.152,18.078,24.619,22.849
@@ -131,7 +131,7 @@ Calais Regional Hospital,"Average Payment Period, Accounts Payable and Accrued E
 Calais Regional Hospital,"Average Payment Period, Current Liabilities",91.272,93.539,105.032,123.227,69.991
 Calais Regional Hospital,Equity Financing Ratio,-0.1,-0.159,-0.285,-0.332,-0.411
 Calais Regional Hospital,Fixed Asset Financing,1.01,1.12,1.191,1.225,
-Calais Regional Hospital,Cash Flow Divided by Total Debt,0.0,0.015,-0.035,0.018,0.004
+Calais Regional Hospital,Cash Flow Divided by Total Debt,0,0.015,-0.035,0.018,0.004
 Calais Regional Hospital,Cash Flow Divided by Total Debt with Operating Income Only,-0.004,0.013,-0.037,0.014,0.002
 Calais Regional Hospital,Debt Service Coverage,0.583,0.769,0.02,0.749,0.592
 Calais Regional Hospital,Debt Service Coverage with Operating Income Only,0.511,0.738,-0.019,0.704,0.549
@@ -355,7 +355,7 @@ Houlton Regional Hospital,Markup,1.791,1.85,1.838,1.857,1.886
 Houlton Regional Hospital,Deductible,0.416,0.423,0.421,0.429,0.448
 Houlton Regional Hospital,Markup Adjustment for Deductible,1.065,1.087,1.084,1.093,1.07
 Houlton Regional Hospital,Reported Income Index,0.697,2.239,-2.1,0.578,0.118
-Houlton Regional Hospital,Total Asset Turnover,1.768,1.987,2.057,2.08,2.0
+Houlton Regional Hospital,Total Asset Turnover,1.768,1.987,2.057,2.08,2
 Houlton Regional Hospital,Fixed Asset Turnover,4.045,4.534,4.915,5.056,5.38
 Houlton Regional Hospital,Average Age of Plant Depreciation Only,19.486,21.248,26.027,32.347,35.687
 Houlton Regional Hospital,Total Operating Expense Growth,0.01,0.024,0.02,-0.001,-0.006
@@ -379,7 +379,7 @@ Inland Hospital,Debt Service Coverage,3.479,2.704,4.283,-0.727,-3.551
 Inland Hospital,Debt Service Coverage with Operating Income Only,3.319,2.526,3.708,-0.738,-3.551
 Inland Hospital,Total Margin,0.005,-0.005,0.019,-0.04,-0.077
 Inland Hospital,Operating Margin,0.003,-0.008,0.012,-0.04,-0.077
-Inland Hospital,Non Operating Revenue Margin,0.42,-0.482,0.361,-0.003,-0.0
+Inland Hospital,Non Operating Revenue Margin,0.42,-0.482,0.361,-0.003,0
 Inland Hospital,Return on Assets,0.008,-0.009,0.043,-0.097,-0.208
 Inland Hospital,Return on Equity,0.019,-0.022,0.141,-0.438,-3.952
 Inland Hospital,Markup,1.836,1.931,1.999,1.884,1.89
@@ -485,7 +485,7 @@ Maine Coast Memorial Hospital,Average Age of Plant Depreciation Only,11.094,0.99
 Maine Coast Memorial Hospital,Total Operating Expense Growth,0.007,0.077,0.023,-0.032,-0.041
 Maine Coast Memorial Hospital,Total Operating Revenue Growth,-0.022,0.1,0.023,-0.015,0.036
 Maine Coast Memorial Hospital,Realized Gains Divided by NonOperating Revenue,-4.541,-0.037,0.918,0.002,
-Maine Coast Memorial Hospital,Realized Gains Divided by NetIncome,0.075,-0.004,-0.255,-0.0,
+Maine Coast Memorial Hospital,Realized Gains Divided by NetIncome,0.075,-0.004,-0.255,0,
 Maine Coast Memorial Hospital,Long Term Debt to Equity,0.316,0.376,0.958,1.464,1.147
 Maine Medical Center,Current Ratio with Board Designated and Undesignated Investments,3.018,3.203,2.989,3.425,1.433
 Maine Medical Center,Current Ratio without Board Designated and Undesignated Investments,2.045,2.234,2.154,2.654,0.952
@@ -564,7 +564,7 @@ Mayo Regional Hospital,Cash Flow Divided by Total Debt with Operating Income Onl
 Mayo Regional Hospital,Debt Service Coverage,2.927,1.987,2.957,3.45,-0.31
 Mayo Regional Hospital,Debt Service Coverage with Operating Income Only,3.3,0.45,0.359,1.012,-0.638
 Mayo Regional Hospital,Total Margin,-0.005,-0.014,-0.004,0.007,-0.052
-Mayo Regional Hospital,Operating Margin,-0.0,-0.033,-0.036,-0.03,-0.059
+Mayo Regional Hospital,Operating Margin,0,-0.033,-0.036,-0.03,-0.059
 Mayo Regional Hospital,Non Operating Revenue Margin,0.953,-1.296,-6.822,5.392,-0.137
 Mayo Regional Hospital,Return on Assets,-0.006,-0.02,-0.006,0.008,-0.067
 Mayo Regional Hospital,Return on Equity,-0.009,-0.026,-0.008,0.012,-0.114
@@ -728,7 +728,7 @@ New England Rehabilitation Hospital,Reported Income Index,7.5,-5.879,-7.675,32.7
 New England Rehabilitation Hospital,Total Asset Turnover,1.691,2.037,2.058,2.133,2.474
 New England Rehabilitation Hospital,Fixed Asset Turnover,4.726,5.613,6.722,6.515,7.879
 New England Rehabilitation Hospital,Average Age of Plant Depreciation Only,9.698,10.726,12.304,12.789,12.221
-New England Rehabilitation Hospital,Total Operating Expense Growth,0.004,-0.001,-0.0,-0.009,0.059
+New England Rehabilitation Hospital,Total Operating Expense Growth,0.004,-0.001,0,-0.009,0.059
 New England Rehabilitation Hospital,Total Operating Revenue Growth,-0.03,0.058,0.023,-0.055,0.051
 New England Rehabilitation Hospital,Long Term Debt to Equity,0.708,0.758,0.79,0.63,0.492
 Northern Maine Medical Center,Current Ratio with Board Designated and Undesignated Investments,1.996,2.465,4.627,4.521,5.018
@@ -753,14 +753,14 @@ Northern Maine Medical Center,Return on Equity,0.063,0.023,0.237,0.017,0.016
 Northern Maine Medical Center,Markup,1.73,1.648,1.731,1.679,1.689
 Northern Maine Medical Center,Deductible,0.392,0.388,0.376,0.401,0.422
 Northern Maine Medical Center,Markup Adjustment for Deductible,1.074,1.027,1.101,1.041,1.023
-Northern Maine Medical Center,Reported Income Index,1.327,1.47,1.006,1.022,1.0
+Northern Maine Medical Center,Reported Income Index,1.327,1.47,1.006,1.022,1
 Northern Maine Medical Center,Total Asset Turnover,1.039,1.112,1.215,1.107,1.193
 Northern Maine Medical Center,Fixed Asset Turnover,2.27,2.5,3.085,2.831,3.002
 Northern Maine Medical Center,Average Age of Plant Depreciation Only,9.486,9.65,11.258,12.037,13.78
 Northern Maine Medical Center,Total Operating Expense Growth,0.056,0.058,0.049,0.063,0.07
 Northern Maine Medical Center,Total Operating Revenue Growth,0.047,0.043,0.2,-0.073,0.071
 Northern Maine Medical Center,Realized Gains Divided by NonOperating Revenue,0.104,0.03,-0.001,0.252,
-Northern Maine Medical Center,Realized Gains Divided by NetIncome,0.034,0.009,-0.0,0.083,
+Northern Maine Medical Center,Realized Gains Divided by NetIncome,0.034,0.009,0,0.083,
 Northern Maine Medical Center,Long Term Debt to Equity,0.286,0.296,0.208,0.193,0.18
 Penobscot Bay Medical Center,Current Ratio with Board Designated and Undesignated Investments,1.897,0.726,0.747,0.85,1.551
 Penobscot Bay Medical Center,Current Ratio without Board Designated and Undesignated Investments,1.897,0.726,0.747,0.85,1.539
@@ -839,7 +839,7 @@ Redington-Fairview General Hospital,Cash Flow Divided by Total Debt with Operati
 Redington-Fairview General Hospital,Debt Service Coverage,3.21,4.057,2.696,2.979,4.078
 Redington-Fairview General Hospital,Debt Service Coverage with Operating Income Only,1.001,2.644,2.165,2.165,3.213
 Redington-Fairview General Hospital,Total Margin,0.016,0.03,0.016,0.022,0.045
-Redington-Fairview General Hospital,Operating Margin,-0.037,0.0,0.001,0.002,0.026
+Redington-Fairview General Hospital,Operating Margin,-0.037,0,0.001,0.002,0.026
 Redington-Fairview General Hospital,Non Operating Revenue Margin,3.2,0.996,0.923,0.924,0.429
 Redington-Fairview General Hospital,Return on Assets,0.012,0.024,0.013,0.018,0.039
 Redington-Fairview General Hospital,Return on Equity,0.022,0.045,0.022,0.03,0.058
@@ -900,7 +900,7 @@ Sebasticook Valley Hospital,Debt Service Coverage,4.134,4.38,7.573,7.983,5.721
 Sebasticook Valley Hospital,Debt Service Coverage with Operating Income Only,3.445,3.926,6.054,7.919,5.72
 Sebasticook Valley Hospital,Total Margin,0.05,0.05,0.134,0.139,0.1
 Sebasticook Valley Hospital,Operating Margin,0.033,0.04,0.104,0.138,0.1
-Sebasticook Valley Hospital,Non Operating Revenue Margin,0.355,0.218,0.252,0.01,0.0
+Sebasticook Valley Hospital,Non Operating Revenue Margin,0.355,0.218,0.252,0.01,0
 Sebasticook Valley Hospital,Return on Assets,0.044,0.047,0.161,0.16,0.102
 Sebasticook Valley Hospital,Return on Equity,0.079,0.077,0.277,0.232,0.139
 Sebasticook Valley Hospital,Markup,1.755,1.764,1.801,1.819,1.943
@@ -1091,7 +1091,7 @@ York Hospital,Markup Adjustment for Deductible,1.089,1.087,1.073,1.061,1.016
 York Hospital,Reported Income Index,0.06,0.47,1.56,1.011,0.518
 York Hospital,Total Asset Turnover,1.502,1.292,1.326,1.439,1.67
 York Hospital,Fixed Asset Turnover,3.523,3.269,3.114,3.436,3.712
-York Hospital,Average Age of Plant Depreciation Only,16.539,17.284,17.0,17.162,19.897
+York Hospital,Average Age of Plant Depreciation Only,16.539,17.284,17,17.162,19.897
 York Hospital,Total Operating Expense Growth,0.077,0.019,0.013,0.051,0.08
 York Hospital,Total Operating Revenue Growth,0.092,0.009,0.012,0.056,0.051
 York Hospital,Realized Gains Divided by NonOperating Revenue,-0.959,0.871,0.658,0.685,1.252
