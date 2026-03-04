@@ -101,8 +101,10 @@ def clean_ma_measure_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     from a_Config.global_constants import MEASURE_MAPPINGS
 
+    ma_mappings = MEASURE_MAPPINGS['MA']
+
     new_measures = df.index.get_level_values('Measure').map(
-        lambda x: MEASURE_MAPPINGS.get(x, x)
+        lambda x: ma_mappings.get(x, x)
     )
     df.index = pd.MultiIndex.from_arrays(
         [
@@ -178,4 +180,5 @@ def create_combined_ma_financial_df(directory: str = MA_FINANCIALS_DIR) -> pd.Da
 
     combined = pd.concat(dfs, axis=1)
     combined = combined[sorted(combined.columns)]
+    combined = clean_ma_measure_names(combined)
     return combined
