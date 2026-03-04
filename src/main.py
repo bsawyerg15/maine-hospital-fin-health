@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import os
-from b_Ingest.ingest_me_financials import create_combined_financial_df
+from b_Ingest.ingest_me_financials import create_combined_me_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from d_Visualizations.aggrid_utils import create_hierarchical_aggrid
-from c_Processing import calculate_residuals
+from c_Processing.b_sum_of_children import calculate_residuals
+from c_Processing.c_main_data_pipeline import process_financial_df
 
 
 # Page configuration
@@ -18,14 +19,15 @@ st.set_page_config(
 # Title
 st.title("Maine Hospital Financial Ratios")
 
-ingest_path = os.path.join(os.getcwd(), 'src', 'z_Data', 'Preprocessed_Data')
-files = [
-         'hospital_dollar_elements_2005_2009.csv',
-         'hospital_dollar_elements_2010_2014.csv',
-         'hospital_dollar_elements_2015_2019.csv',
-         'hospital_dollar_elements_2020_2024.csv'
-         ]
-dollar_df = create_combined_financial_df(ingest_path, files, measure='Measure')
+dollar_df = process_financial_df('ME')
+# ingest_path = os.path.join(os.getcwd(), 'src', 'z_Data', 'Preprocessed_Data')
+# files = [
+#          'hospital_dollar_elements_2005_2009.csv',
+#          'hospital_dollar_elements_2010_2014.csv',
+#          'hospital_dollar_elements_2015_2019.csv',
+#          'hospital_dollar_elements_2020_2024.csv'
+#          ]
+# dollar_df = create_combined_me_financial_df(ingest_path, files, measure='Measure')
 
 residual_df = calculate_residuals(dollar_df)
 

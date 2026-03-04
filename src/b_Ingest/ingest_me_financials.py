@@ -8,20 +8,19 @@ from a_Config.global_constants import (
 )
 
 
-def ingest_single_csv(file_path: str, entity: str = 'Organization', measure: str = 'Ratio') -> pd.DataFrame:
+def ingest_single_csv(file_path: str) -> pd.DataFrame:
     """
     Reads a single CSV file and sets the multi-index appropriately.
 
     Args:
         file_path (str): Path to the CSV file
         entity (str): Name of the first index column (default: 'Organization')
-        measure (str): Name of the second index column (default: 'Ratio')
 
     Returns:
-        pd.DataFrame: DataFrame with multi-index set
+        pd.DataFrame: DataFrame with multi-index set keyed on ['Organization', 'Measure']
     """
     df = pd.read_csv(file_path)
-    df = df.set_index([entity, measure])
+    df = df.set_index(['Organization', 'Measure'])
     return df
 
 
@@ -117,7 +116,6 @@ def process_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     df_clean = clean_financial_input_df(df)
     df_augmented = augment_input_df_with_parent(df_clean)
     df_renamed = rename_measures_by_hierarchy(df_augmented)
-    verify_measures_against_model(df_renamed)
     return df_renamed
 
 
@@ -138,14 +136,15 @@ def rename_measures_by_hierarchy(df: pd.DataFrame) -> pd.DataFrame:
         lambda row: hierarchy_renames.get((row['Measure'], row['Parent']), row['Measure']),
         axis=1
     )
-    df_renamed = df_reset.set_index(['Organization', 'Measure']).drop(columns=['Parent'])
+    df_renamed = df_reset.set_index(['Organization', 'Measure'])
+    df_renamed = df_renamed.drop(columns=['Parent'])
 
     assert df_renamed.index.is_unique, f"Non-unique index elements: {df_renamed.index[df_renamed.index.duplicated()].tolist()}"
 
     return df_renamed
 
 
-def create_combined_financial_df(directory: str, file_list: list[str], entity: str = 'Organization', measure: str = 'Ratio') -> pd.DataFrame:
+def create_combined_me_financial_df(directory: str, file_list: list[str]) -> pd.DataFrame:
     """
     Stitches multiple CSV files together:
     - Ingests each (read + index)
@@ -164,7 +163,7 @@ def create_combined_financial_df(directory: str, file_list: list[str], entity: s
     dfs = []
     for file in file_list:
         file_path = os.path.join(directory, file)
-        df_ingest = ingest_single_csv(file_path, entity, measure)
+        df_ingest = ingest_single_csv(file_path)
         df_clean = process_financial_input_df(df_ingest)
         dfs.append(df_clean)
 
@@ -175,17 +174,3 @@ def create_combined_financial_df(directory: str, file_list: list[str], entity: s
     combined_df = combined_df[year_columns]
     
     return combined_df
-    
-
-def verify_measures_against_model(df: pd.DataFrame) -> None:
-    """
-    Verifies that all measures in the input DataFrame index are present in GlobalConstants.VALID_MEASURES.
-    
-    Raises:
-        ValueError: If invalid measures are found.
-    """
-    valid_measures = VALID_MEASURES
-    input_measures = set(df.index.get_level_values('Measure').unique())
-    invalid = input_measures - valid_measures
-    if invalid:
-        raise ValueError(f"Invalid measures found: {sorted(list(invalid))}")
