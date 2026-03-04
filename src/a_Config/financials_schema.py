@@ -3,7 +3,7 @@ import pandera as pa
 financials_schema = pa.DataFrameSchema(
     index=pa.MultiIndex([
         pa.Index(str, name="Organization"),
-        pa.Index(int, name="Measure"),
+        pa.Index(str, name="Measure"),
         ]),
     columns={
         # Regex matches any 4-digit year column

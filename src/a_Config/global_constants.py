@@ -5,13 +5,16 @@ from typing import Dict, Set
 
 MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')
 
-HOSPITAL_MAPPINGS: Dict[str, str] = pd.read_csv(
+ORG_MAPPINGS_ME: Dict[str, str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_renames_me.csv')
 ).set_index('As Reported')['Standardized'].to_dict()
 
-MEASURE_MAPPINGS: Dict[str, str] = pd.read_csv(
-    os.path.join(MAPPINGS_DIR, 'clean_measure_names.csv')
-).set_index('As Reported')['Standardized'].to_dict()
+MEASURE_MAPPINGS: Dict[str, Dict[str, str]] = (
+    pd.read_csv(os.path.join(MAPPINGS_DIR, 'clean_measure_names.csv'))
+    .groupby('State')
+    .apply(lambda g: g.set_index('As Reported')['Standardized'].to_dict())
+    .to_dict()
+)
 
 MEASURE_HIERARCHY_RENAMES: Dict[tuple[str, str], str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'reported_measure_hierarchy_renames.csv')

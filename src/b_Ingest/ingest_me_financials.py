@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from a_Config.global_constants import (
-    HOSPITAL_MAPPINGS,
+    ORG_MAPPINGS_ME,
     MEASURE_MAPPINGS,
     MEASURE_HIERARCHY_RENAMES,
     VALID_MEASURES
@@ -41,8 +41,8 @@ def clean_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
     df.columns = df.columns.str.replace('FY ', '')
 
     # Map hospital and measure names using global mappings
-    hospital_map = HOSPITAL_MAPPINGS
-    measure_map = MEASURE_MAPPINGS
+    hospital_map = ORG_MAPPINGS_ME
+    measure_map = MEASURE_MAPPINGS['ME']
 
     new_hospitals = df.index.get_level_values(0).map(lambda x: hospital_map.get(x, x))
     new_measures = df.index.get_level_values(1).map(lambda x: measure_map.get(x, x))
