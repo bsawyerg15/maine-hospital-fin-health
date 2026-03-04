@@ -48,6 +48,25 @@ def calculate_children_sums(df: pd.DataFrame) -> pd.DataFrame:
     return sums_df
 
 
+def add_computed_parent_rows(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Computes the sum of children for each parent measure via calculate_children_sums,
+    then inserts any parent rows that are present in the computed sums but absent
+    from the input dataframe. Existing rows are left unchanged.
+
+    Args:
+        df: DataFrame with MultiIndex (Hospital, Measure) and numeric year columns.
+
+    Returns:
+        DataFrame augmented with computed rows for any parent measures not already present.
+    """
+    children_sums = calculate_children_sums(df)
+    new_rows = children_sums[~children_sums.index.isin(df.index)]
+    if new_rows.empty:
+        return df
+    return pd.concat([df, new_rows])
+
+
 def calculate_residuals(df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate residuals for parent line items: children_sum - parent_base_value.

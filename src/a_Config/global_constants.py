@@ -17,6 +17,10 @@ MEASURE_HIERARCHY_RENAMES: Dict[tuple[str, str], str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'reported_measure_hierarchy_renames.csv')
 ).set_index(['Measure Name', 'Parent'])['New Name'].to_dict()
 
+EXTERNAL_MAPPINGS: pd.DataFrame = pd.read_csv(
+    os.path.join(MAPPINGS_DIR, 'external_mappings.csv')
+)
+
 FINANCIAL_STATEMENT_MODEL: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'fin_statement_model.csv')
 ).set_index('Measure')

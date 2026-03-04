@@ -45,7 +45,7 @@ def transpose_to_hospital_measure(df: pd.DataFrame, year: int) -> pd.DataFrame:
     df_long = df[id_cols + measure_cols].melt(
         id_vars=id_cols,
         var_name='Measure',
-        value_name=year,
+        value_name=str(year),
     )
     df_long['Measure'] = df_long['Measure'].str.strip()
     return df_long.set_index(['Org ID', 'Organization Name', 'Measure'])
@@ -56,6 +56,64 @@ def _extract_year(filename: str) -> int:
     if not match:
         raise ValueError(f"Could not extract year from filename: {filename}")
     return int(match.group(1))
+
+
+def _parse_dollar_value(val) -> float:
+    if pd.isna(val):
+        return float('nan')
+    s = str(val).strip()
+    negative = s.startswith('(') and s.endswith(')')
+    if negative:
+        s = s[1:-1]
+    s = s.replace('$', '').replace(',', '').replace('%', '')
+    try:
+        result = float(s)
+        return -result if negative else result
+    except ValueError:
+        return float('nan')
+
+
+def parse_ma_numeric_values(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Converts dollar-formatted string values to floats.
+    Handles: "$1,234,567" → 1234567.0, "($1,234,567)" → -1234567.0.
+    Non-parseable values (ratios, percentages, etc.) become NaN.
+
+    Args:
+        df: DataFrame with MultiIndex (Org ID, Organization Name, Measure)
+            and year integer columns containing raw string values.
+
+    Returns:
+        DataFrame with the same structure and float values.
+    """
+    return df.apply(lambda col: col.map(_parse_dollar_value))
+
+
+def clean_ma_measure_names(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Applies 1-to-1 measure name cleaning defined in clean_measure_names.csv (MA rows),
+    via MEASURE_MAPPINGS in global_constants. Measures with no mapping are left unchanged.
+
+    Args:
+        df: DataFrame with MultiIndex (Org ID, Organization Name, Measure).
+
+    Returns:
+        DataFrame with cleaned measure names in the Measure level.
+    """
+    from a_Config.global_constants import MEASURE_MAPPINGS
+
+    new_measures = df.index.get_level_values('Measure').map(
+        lambda x: MEASURE_MAPPINGS.get(x, x)
+    )
+    df.index = pd.MultiIndex.from_arrays(
+        [
+            df.index.get_level_values('Org ID'),
+            df.index.get_level_values('Organization Name'),
+            new_measures,
+        ],
+        names=df.index.names,
+    )
+    return df
 
 
 def create_combined_ma_financial_df(directory: str = MA_FINANCIALS_DIR) -> pd.DataFrame:
