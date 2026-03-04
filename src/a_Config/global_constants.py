@@ -6,7 +6,7 @@ from typing import Dict, Set
 MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')
 
 HOSPITAL_MAPPINGS: Dict[str, str] = pd.read_csv(
-    os.path.join(MAPPINGS_DIR, 'hospital_name_mappings.csv')
+    os.path.join(MAPPINGS_DIR, 'hospital_renames_me.csv')
 ).set_index('As Reported')['Standardized'].to_dict()
 
 MEASURE_MAPPINGS: Dict[str, str] = pd.read_csv(
