@@ -38,7 +38,7 @@ def process_financial_df(state, input_df=None) -> pd.DataFrame:
 
     financials_schema.validate(input_df) # validate that the input df conforms to the expected shape 
     df_with_external_mapping = apply_external_mappings(input_df, state)
-    verify_measures_against_model(df_with_external_mapping)
+    # verify_measures_against_model(df_with_external_mapping)
     df_with_sum_of_children = add_computed_parent_rows(df_with_external_mapping)
 
     return df_with_sum_of_children

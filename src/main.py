@@ -19,15 +19,7 @@ st.set_page_config(
 # Title
 st.title("Maine Hospital Financial Ratios")
 
-dollar_df = process_financial_df('ME')
-# ingest_path = os.path.join(os.getcwd(), 'src', 'z_Data', 'Preprocessed_Data')
-# files = [
-#          'hospital_dollar_elements_2005_2009.csv',
-#          'hospital_dollar_elements_2010_2014.csv',
-#          'hospital_dollar_elements_2015_2019.csv',
-#          'hospital_dollar_elements_2020_2024.csv'
-#          ]
-# dollar_df = create_combined_me_financial_df(ingest_path, files, measure='Measure')
+dollar_df = process_financial_df('MA')
 
 residual_df = calculate_residuals(dollar_df)
 

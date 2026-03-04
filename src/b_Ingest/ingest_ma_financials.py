@@ -132,6 +132,7 @@ def apply_and_validate_org_renames(df: pd.DataFrame) -> pd.DataFrame:
     from a_Config.global_constants import HOSPITAL_RENAMES_MA
 
     df = df.copy()
+    df = df.dropna(subset=['Organization Name'])
     df['Organization Name'] = df.apply(
         lambda row: HOSPITAL_RENAMES_MA.get(
             (row['Organization Name'], row['Org ID']), row['Organization Name']
@@ -172,7 +173,8 @@ def create_combined_ma_financial_df(directory: str = MA_FINANCIALS_DIR) -> pd.Da
         df_raw = ingest_single_csv(file_path)
         df_raw = apply_and_validate_org_renames(df_raw)
         df_transposed = transpose_to_hospital_measure(df_raw, year)
-        dfs.append(df_transposed)
+        df_dollars_parsed = parse_ma_numeric_values(df_transposed)
+        dfs.append(df_dollars_parsed)
 
     combined = pd.concat(dfs, axis=1)
     combined = combined[sorted(combined.columns)]

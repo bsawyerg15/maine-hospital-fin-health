@@ -50,8 +50,7 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
     new_measures = df_to_agg.index.get_level_values('Measure').map(relevant_ext)
     df_to_agg.index = pd.MultiIndex.from_arrays(
         [
-            df_to_agg.index.get_level_values('Org ID'),
-            df_to_agg.index.get_level_values('Organization Name'),
+            df_to_agg.index.get_level_values('Organization'),
             new_measures,
         ],
         names=df_to_agg.index.names,
