@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run Streamlit App",
+            "label": "Run Individual App",
             "type": "shell",
             "command": "/Users/brooksgingrich/maine-hospital-fin-health/.conda/bin/python",
             "args": [
@@ -10,6 +10,33 @@
                 "streamlit",
                 "run",
                 "src/main.py"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Cross-Sectional App",
+            "type": "shell",
+            "command": "/Users/brooksgingrich/maine-hospital-fin-health/.conda/bin/python",
+            "args": [
+                "-m",
+                "streamlit",
+                "run",
+                "src/analysis_app.py"
             ],
             "group": {
                 "kind": "build",
