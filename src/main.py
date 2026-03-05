@@ -9,20 +9,17 @@ from c_Processing.b_sum_of_children import calculate_residuals
 from c_Processing.c_main_data_pipeline import process_financial_df
 
 
-# Page configuration
-st.set_page_config(
-    page_title="Hospital Financial Ratios",
-    page_icon="🏥",
-    layout="wide"
-)
-
-# Title
-st.title("Maine Hospital Financial Ratios")
+#######################################################################################################
+# Data Inputs
+#######################################################################################################
 
 dollar_df = process_financial_df('ME')
 
 residual_df = calculate_residuals(dollar_df)
 
+#######################################################################################################
+# User Inputs
+#######################################################################################################
 
 st.sidebar.header("Navigation")
 selected_organization = st.sidebar.selectbox(
@@ -31,8 +28,27 @@ selected_organization = st.sidebar.selectbox(
     index=0
 )
 
+#######################################################################################################
+# Calcs
+#######################################################################################################
+
 hospital_df = dollar_df.xs(selected_organization, level='Organization')
+
 hospital_residual_df = residual_df.xs(selected_organization, level='Organization')
+
+#######################################################################################################
+# Viz
+#######################################################################################################
+
+# Page configuration
+st.set_page_config(
+    page_title="Hospital Financial Profile",
+    page_icon="🏥",
+    layout="wide"
+)
+
+# Title
+st.title(f"{selected_organization} Financial Profile")
 
 st.subheader("Ratios")
 create_hierarchical_aggrid(hospital_df, ['Ratios'])
