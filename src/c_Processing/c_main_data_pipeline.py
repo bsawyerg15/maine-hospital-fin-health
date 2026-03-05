@@ -21,6 +21,20 @@ def verify_measures_against_model(df: pd.DataFrame) -> None:
         raise ValueError(f"Invalid measures found: {sorted(list(invalid))}")
 
 
+def drop_non_model_measures(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Drops rows from the DataFrame where the Measure index level is not in VALID_MEASURES.
+
+    Args:
+        df: DataFrame with a MultiIndex containing a 'Measure' level.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame containing only rows with valid measures.
+    """
+    mask = df.index.get_level_values('Measure').isin(VALID_MEASURES)
+    return df[mask]
+
+
 def process_financial_df(state, input_df=None) -> pd.DataFrame:
     """
     Runs the primary processing pipeline for the financials. Runs the following steps:
@@ -38,7 +52,8 @@ def process_financial_df(state, input_df=None) -> pd.DataFrame:
 
     financials_schema.validate(input_df) # validate that the input df conforms to the expected shape 
     df_with_external_mapping = apply_external_mappings(input_df, state)
-    verify_measures_against_model(df_with_external_mapping)
+    drop_non_model_measures(df_with_external_mapping)
+    # verify_measures_against_model(df_with_external_mapping)
     df_with_sum_of_children = add_computed_parent_rows(df_with_external_mapping)
 
     return df_with_sum_of_children

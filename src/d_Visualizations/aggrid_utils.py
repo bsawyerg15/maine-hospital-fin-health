@@ -24,6 +24,8 @@ def create_hierarchical_aggrid(hospital_df: pd.DataFrame, roots: list[str], heig
         column_defs.append({
             'field': year,
             'headerName': year,
+            'width': 120,
+            'suppressSizeToFit': True,
             'valueFormatter': """params => {
                 const val = params.value;
                 if (val == null || isNaN(val)) return '';
@@ -36,9 +38,18 @@ def create_hierarchical_aggrid(hospital_df: pd.DataFrame, roots: list[str], heig
     grid_options = gb.build()
     grid_options["columnDefs"] = column_defs
 
+    if years:
+        last_year = years[-1]
+        grid_options["onFirstDataRendered"] = JsCode(f"""
+            function(params) {{
+                params.api.ensureColumnVisible('{last_year}');
+            }}
+        """).js_code
+
     grid_options["autoGroupColumnDef"] = {
         "headerName": "Measure",
-        "minWidth": 300,
+        "minWidth": 350,
+        "pinned": "left",
         "cellRendererParams": {
             "suppressCount": True,
         },

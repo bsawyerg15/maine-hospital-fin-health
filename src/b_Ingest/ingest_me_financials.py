@@ -167,7 +167,9 @@ def create_combined_me_financial_df(directory: str, file_list: list[str]) -> pd.
         df_clean = process_financial_input_df(df_ingest)
         dfs.append(df_clean)
 
-    combined_df = pd.concat(dfs, axis=1)
+    combined_df = dfs[0]
+    for df in dfs[1:]:
+        combined_df = combined_df.combine_first(df)
 
     # Sort columns by year (numerical)
     year_columns = sorted(combined_df.columns, key=lambda x: int(x))

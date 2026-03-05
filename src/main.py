@@ -34,13 +34,15 @@ selected_organization = st.sidebar.selectbox(
 hospital_df = dollar_df.xs(selected_organization, level='Organization')
 hospital_residual_df = residual_df.xs(selected_organization, level='Organization')
 
+st.subheader("Ratios")
+create_hierarchical_aggrid(hospital_df, ['Ratios'])
+
+st.subheader("Income Statement")
+create_hierarchical_aggrid(hospital_df, ['Excess of Revenue Over Expenses'])
 
 st.subheader("Balance Sheet")
 create_hierarchical_aggrid(hospital_df, ['Total Unrestricted Assets', 'Total Liabilities and Equity'])
 
 st.subheader("Balance Sheet Residuals (Children Sum - Parent)")
 create_hierarchical_aggrid(hospital_residual_df, ['Total Unrestricted Assets', 'Total Liabilities and Equity'])
-
-st.subheader("Income Statement")
-create_hierarchical_aggrid(hospital_df, ['Excess of Revenue Over Expenses'])
 
