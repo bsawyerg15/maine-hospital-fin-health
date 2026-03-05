@@ -28,6 +28,39 @@ ME,Other Non-current Assets,Other Non-Current Assets
 ME,Total Non-operating Revenue,Total Non-Operating Revenue
 ME,Investment in Affiliates,Investments in Affiliates
 ME,Third Party Settlements,Third Party Settlements Receivable
+ME,Non Operating Revenue,Non-Operating Margin
+ME,Non Operating Revenue Margin,Non-Operating Margin
+ME,Days in Accounts Receivable days,Average Days in Accounts Receivable
+ME,Days in Accounts Receivable,Average Days in Accounts Receivable
+ME,"Average Pay Period, Current Liabilities days",Average Payment Period
+ME,"Days Cash on Hand, Current days",Current Days Cash on Hand
+ME,"Days Cash on Hand, Current",Current Days Cash on Hand
+ME,"Days Cashon Hand, InclBoard Designated &Undesignated Investments days","Current Days Cash on Hand, Including Restricted"
+ME,"Days Cash on Hand, Incl Board Designated & Undesignated Investments","Current Days Cash on Hand, Including Restricted"
+ME,Average Age of Plant Depreciation Only years,Average Age of Plant
+ME,Average Age Plant Depreciation Only,Average Age of Plant
+ME,Average Age of Plant Depreciation Only,Average Age of Plant
+ME,Cash Flow Divided by Total Debt,Cash Flow to Total Debt
+ME,Debt Service Coverage rate,Debt Service Coverage Ratio
+ME,Debt Service Coverage,Debt Service Coverage Ratio
+ME,Debt Service Coverage Total,Debt Service Coverage Ratio
+ME,Current Ratio without Board Designated & Undesignated Investments rate,Current Ratio
+ME,Current Ratio without Board Designated and Undesignated Investments,Current Ratio
+ME,"Days Cashon Hand, InclBoard Designated &Undesignated Investments days","Current Ratio, Including Restricted"
+ME,Current Ratio with Board Designated and Undesignated Investments,"Current Ratio, Including Restricted"
+ME,Total Asset Turnover rate,Total Asset Turnover
+ME,Fixed Asset Turnover rate,Fixed Asset Turnover
+ME,Return on Equity (,Return on Equity
+ME,Return On Equity,Return on Equity
+ME,Return On Assets,Return on Assets
+ME,Equity Financing Ratio (,Equity Financing Ratio
+ME,Debt Service Coverage rate (cid:,Debt Service Coverage
+ME,Total Margin (,Total Margin
+ME,Operating Margin (,Operating Margin
+ME,Non Operating Revenue (,Non-Operating Margin
+ME,Cash Flow Divided by Total Debt (,Cash Flow to Total Debt
+ME,Debt Service Coverage rate (,Debt Service Coverage
+ME,"Days Cash on Hand, Current days (",Current Days Cash on Hand
 MA,Receivables Due From Affiliates,Due from Affiliates (Current)
 MA,Gross Property Plant and Equipment,"Gross Property, Plant and Equipment (PP&E)"
 MA,Less Accumulated Depreciation,Accumulated Depreciation

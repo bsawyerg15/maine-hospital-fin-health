@@ -10,6 +10,10 @@ _ME_FILES = [
     "hospital_dollar_elements_2010_2014.csv",
     "hospital_dollar_elements_2015_2019.csv",
     "hospital_dollar_elements_2020_2024.csv",
+    "hospital_ratios_2005_2009.csv",
+    "hospital_ratios_2010_2014.csv",
+    "hospital_ratios_2015_2019.csv",
+    "hospital_ratios_2020_2024.csv"
 ]
 
 _STATE_DISPATCH = {

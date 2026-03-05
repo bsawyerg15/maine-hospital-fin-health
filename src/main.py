@@ -19,7 +19,7 @@ st.set_page_config(
 # Title
 st.title("Maine Hospital Financial Ratios")
 
-dollar_df = process_financial_df('MA')
+dollar_df = process_financial_df('ME')
 
 residual_df = calculate_residuals(dollar_df)
 
