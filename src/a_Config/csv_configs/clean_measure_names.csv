@@ -14,7 +14,8 @@ ME,Permanently Impaired Security Writedowns,Permanently Impaired Security Write 
 ME,"Other Non Operating Revenues (Gifts, Bequests,","Other Non-Operating Revenues (Gifts, Bequests, etc.)"
 ME,"Other Non Operating Revenues (Gifts,  Bequests","Other Non-Operating Revenues (Gifts, Bequests, etc.)"
 ME,Other Non-Operating Revenues,"Other Non-Operating Revenues (Gifts, Bequests, etc.)"
-ME,Excess of Revenue over Expenses,Excess of Revenue Over Expenses
+ME,Excess of Revenue over Expenses,Net Income
+ME,Excess of Revenue Over Expenses,Net Income
 ME,Net Assets Released for Restrictions - Capital,Net Assets Released for Restrictions
 ME,Transfers from/To Affiliates,Transfers from/to Affiliates
 ME,Transfers From/To Affiliates,Transfers from/to Affiliates
@@ -86,7 +87,7 @@ MA,Salary and Benefit Expense,Salaries and Benefits
 MA,Depreciation and Amortization Expense,Depreciation and Amortization
 MA,Interest Expense,Interest
 MA,Net Nonrecurring Gains and Losses,Extraordinary Gains/Losses
-MA,Total Excess of Revenue Gains and Other Support Over Expenses,Excess of Revenue Over Expenses
+MA,Total Excess of Revenue Gains and Other Support Over Expenses,Net Income
 MA,Transfers from to Parent and Affiliates,Transfers from/to Affiliates
 MA,Other Changes in Unrestricted Net Assets,Other Changes
 MA,Changes in Unrestricted Assets Related to Pension Activities,Minimum Pension Liability Adjustment

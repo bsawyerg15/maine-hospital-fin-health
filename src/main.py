@@ -4,7 +4,7 @@ import os
 from b_Ingest.ingest_me_financials import create_combined_me_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
-from d_Visualizations.aggrid_utils import create_hierarchical_aggrid
+from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from c_Processing.b_sum_of_children import calculate_residuals
 from c_Processing.c_main_data_pipeline import process_financial_df
 
@@ -54,7 +54,7 @@ st.subheader("Ratios")
 create_hierarchical_aggrid(hospital_df, ['Ratios'])
 
 st.subheader("Income Statement")
-create_hierarchical_aggrid(hospital_df, ['Excess of Revenue Over Expenses'])
+create_hierarchical_aggrid(hospital_df, ['Total Change in Unrestricted Net Assets'])
 
 st.subheader("Balance Sheet")
 create_hierarchical_aggrid(hospital_df, ['Total Unrestricted Assets', 'Total Liabilities and Equity'])

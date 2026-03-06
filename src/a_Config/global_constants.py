@@ -28,6 +28,12 @@ EXTERNAL_MAPPINGS: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'external_mappings.csv')
 )
 
+DERIVE_RATIOS: pd.DataFrame = pd.read_csv(
+    os.path.join(MAPPINGS_DIR, 'derive_ratios.csv')
+)
+DERIVE_RATIOS['Negate?'] = DERIVE_RATIOS['Negate?'].astype(bool)
+DERIVE_RATIOS['Multiplier'] = DERIVE_RATIOS['Negate?'].astype(int).replace({1: -1, 0: 1})
+
 FINANCIAL_STATEMENT_MODEL: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'fin_statement_model.csv')
 ).set_index('Measure')
