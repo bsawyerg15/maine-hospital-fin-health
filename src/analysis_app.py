@@ -55,8 +55,8 @@ st.set_page_config(
 
 st.title("Cross Sectional Analysis")
 
-margin = 0.25
-_, col, side_col = st.columns([margin, 1, margin])
+margin = 0.3
+_, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
     selected_measure = st.selectbox('Measure', derived_ratios_df.index.get_level_values(1).unique())
