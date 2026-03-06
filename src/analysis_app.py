@@ -7,7 +7,7 @@ from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from c_Processing.b_sum_of_children import calculate_residuals
 from c_Processing.c_main_data_pipeline import process_financial_df
-from d_Aggregations.aggregations import create_mean_df
+from d_Aggregations.aggregations import create_mean_df, create_failed_hospital_df
 
 
 #######################################################################################################
@@ -17,6 +17,10 @@ from d_Aggregations.aggregations import create_mean_df
 hospital_df = process_financial_df('ME')
 
 mean_df = create_mean_df(hospital_df)
+
+failed_hospital_df = create_failed_hospital_df(hospital_df)
+
+mean_failed_df = failed_hospital_df.groupby(level='Measure').mean()
 
 #######################################################################################################
 # User Inputs
@@ -40,4 +44,4 @@ st.set_page_config(
 
 st.title("Cross Sectional Analysis")
 
-create_hierarchical_aggrid(mean_df[[selected_date]].round(1), ['Ratios'])
+create_hierarchical_aggrid(mean_df[[selected_date]].join(mean_failed_df).round(1), ['Ratios'])
