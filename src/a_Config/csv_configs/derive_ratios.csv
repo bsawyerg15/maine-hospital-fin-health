@@ -1,3 +1,10 @@
-﻿Measure,Sub-Measure,Numerator or Denominator,Negate?
-Total Margin,Net Income,Numerator,FALSE
-Total Margin,Total Revenue,Denominator,FALSE
+﻿Measure,Sub-Measure,Numerator or Denominator,Multiplier
+Total Margin,Net Income,Numerator,
+Total Margin,Total Revenue,Denominator,
+Operating Margin,Net Operating Income,Numerator,
+Operating Margin,Total Operating Revenue,Denominator,
+Average Age of Plant,Accumulated Depreciation,Numerator,
+Average Age of Plant,Depreciation and Amortization,Denominator,
+Current Days Cash on Hand,Cash and Investments (Unrestricted),Numerator,365
+Current Days Cash on Hand,Total Operating Expenses,Denominator,
+Current Days Cash on Hand,Depreciation and Amortization,Denominator,-1

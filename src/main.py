@@ -7,6 +7,7 @@ from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from c_Processing.b_sum_of_children import calculate_residuals
 from c_Processing.c_main_data_pipeline import process_financial_df
+from d_Transformations.derived_ratios import derive_ratios
 
 
 #######################################################################################################
@@ -16,6 +17,8 @@ from c_Processing.c_main_data_pipeline import process_financial_df
 dollar_df = process_financial_df('ME')
 
 residual_df = calculate_residuals(dollar_df)
+
+derived_ratios_df = derive_ratios(dollar_df)
 
 #######################################################################################################
 # User Inputs
@@ -33,6 +36,8 @@ selected_organization = st.sidebar.selectbox(
 #######################################################################################################
 
 hospital_df = dollar_df.xs(selected_organization, level='Organization')
+
+hospital_derived_ratios_df = derived_ratios_df.xs(selected_organization, level='Organization')
 
 hospital_residual_df = residual_df.xs(selected_organization, level='Organization')
 
@@ -52,6 +57,9 @@ st.title(f"{selected_organization} Financial Profile")
 
 st.subheader("Ratios")
 create_hierarchical_aggrid(hospital_df, ['Ratios'])
+
+st.subheader("Derived Ratios")
+st.dataframe(hospital_derived_ratios_df)
 
 st.subheader("Income Statement")
 create_hierarchical_aggrid(hospital_df, ['Total Change in Unrestricted Net Assets'])
