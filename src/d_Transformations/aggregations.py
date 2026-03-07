@@ -59,3 +59,12 @@ def create_failed_hospital_df(df: pd.DataFrame, num_years=4) -> pd.DataFrame:
     if not result_dfs:
         return pd.DataFrame()
     return pd.concat(result_dfs)
+
+
+def filter_to_non_failed_hospitals(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Filters out all hospitals that have failed.
+    """
+    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index)
+    orgs = df.index.get_level_values('Organization')
+    return df[~orgs.isin(failed_hospitals)]

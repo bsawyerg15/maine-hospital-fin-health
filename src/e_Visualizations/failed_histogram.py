@@ -2,7 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 
-def plot_failed_histogram(population_df, failed_df, pop_column, failed_column, bins=20, title=None):
+def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, measure_name, bins=20, title=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -19,11 +19,11 @@ def plot_failed_histogram(population_df, failed_df, pop_column, failed_column, b
     title : str, optional
         Chart title.
     """
-    pop_values = population_df[pop_column].dropna()
-    failed_values = failed_df[failed_column].dropna()
+    pop_values = not_failed_col.dropna()
+    failed_values = failed_col.dropna()
 
     # Compute shared bin edges from the combined range
-    all_values = np.concatenate([pop_values.values, failed_values.values])
+    all_values = np.concatenate([pop_values.values, failed_values.values, moving_avg_failed_col.values])
     bin_edges = np.histogram_bin_edges(all_values, bins=bins)
     bin_size = bin_edges[1] - bin_edges[0]
 
@@ -32,7 +32,7 @@ def plot_failed_histogram(population_df, failed_df, pop_column, failed_column, b
     fig.add_trace(go.Histogram(
         x=pop_values,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name="Population",
+        name="Operational Hospitals",
         marker_color="steelblue",
         opacity=0.6,
         yaxis="y1",
@@ -41,16 +41,25 @@ def plot_failed_histogram(population_df, failed_df, pop_column, failed_column, b
     fig.add_trace(go.Histogram(
         x=failed_values,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name="Failed",
+        name="Year Failed",
         marker_color="firebrick",
         opacity=0.7,
         yaxis="y2",
     ))
 
+    fig.add_trace(go.Histogram(
+        x=moving_avg_failed_col,
+        xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
+        name="3yma Before Failed",
+        marker_color="green",
+        opacity=0.7,
+        yaxis="y2",
+    ))
+
     fig.update_layout(
-        title=title or f"Distribution of {pop_column}",
-        xaxis=dict(title=pop_column),
-        yaxis=dict(title="Population count", title_font=dict(color="steelblue")),
+        title=title or f'Distribution of {measure_name}',
+        xaxis=dict(title=measure_name),
+        yaxis=dict(title="Operational count", title_font=dict(color="steelblue")),
         yaxis2=dict(
             title="Failed count",
             title_font=dict(color="firebrick"),

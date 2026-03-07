@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
 
-def plot_leadup_to_failure(df, title=None, yaxis_title=None, row_label_col=None, mean=None, std=None):
+def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None, row_label_col=None):
     """
     Plot each row of a dataframe as a time series, where columns represent time points.
 
@@ -55,7 +55,7 @@ def plot_leadup_to_failure(df, title=None, yaxis_title=None, row_label_col=None,
             x=x, y=[mean] * len(x),
             mode="lines",
             line=dict(color="steelblue", dash="dash", width=1.5),
-            name="Mean",
+            name="Overall Mean",
         ))
 
     for label, (_, row) in zip(labels, plot_df.iterrows()):
