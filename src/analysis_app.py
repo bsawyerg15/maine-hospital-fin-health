@@ -20,14 +20,14 @@ from e_Visualizations.leadup_to_failure import plot_leadup_to_failure
 
 selected_date = st.sidebar.selectbox(
     'Analysis Period End',
-    options=sorted([str(i) for i in range(2000, 2025)], reverse=True),
+    options=['Total'] + sorted([str(i) for i in range(2000, 2025)], reverse=True),
     index=0
 )
 
-is_restrict_failed = st.sidebar.checkbox(
-    'Restrict Failed to Analysis Period',
-    help='Checking this will only include hospitals that failed within analysis period in the top charts.'
-)
+# is_restrict_failed = st.sidebar.checkbox(
+#     'Restrict Failed to Analysis Period',
+#     help='Checking this will only include hospitals that failed within analysis period in the top charts.'
+# )
 
 #######################################################################################################
 # Data Inputs
@@ -67,7 +67,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Cross Sectional Analysis")
+st.title("What are the financial characteristics of failed hospitals?")
 
 #######################################################################################################
 # Intro Charts
@@ -77,7 +77,7 @@ margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
-    selected_measure = st.selectbox('Measure', derived_ratios_df.index.get_level_values(1).unique())
+    selected_measure = st.selectbox('Measure', derived_ratios_df.index.get_level_values(1).unique(), 2)
 
 all_non_failed_values = non_failed_derived_ratios.xs(selected_measure, level='Measure').stack()
 non_failed_mean = all_non_failed_values.mean()
@@ -100,7 +100,7 @@ with col1:
         plot_mean_bar_chart([derived_ratios_df.xs(selected_measure, level='Measure').stack(), 
                              failed_derived_ratios_df.xs(selected_measure, level='Measure')['T'],
                              failed_derived_ma_ratios_df.xs(selected_measure, level='Measure')['T - 1']
-                             ], ['Population', 'Failed Year', '3yma Before Failing'],
+                             ], ['Operational', 'Failed Year', '3yma Before Failing'],
                              title=f'Mean {selected_measure} +/- 1 Std. Dev.'
                              )
         )

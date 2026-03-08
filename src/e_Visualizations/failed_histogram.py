@@ -51,9 +51,10 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, mea
         x=moving_avg_failed_col,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
         name="3yma Before Failed",
-        marker_color="green",
+        marker_color="gray",
         opacity=0.7,
         yaxis="y2",
+        visible='legendonly'
     ))
 
     fig.update_layout(

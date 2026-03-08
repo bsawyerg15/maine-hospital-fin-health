@@ -55,7 +55,7 @@ def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None, row_labe
             x=x, y=[mean] * len(x),
             mode="lines",
             line=dict(color="steelblue", dash="dash", width=1.5),
-            name="Overall Mean",
+            name="Operational Mean",
         ))
 
     for label, (_, row) in zip(labels, plot_df.iterrows()):
