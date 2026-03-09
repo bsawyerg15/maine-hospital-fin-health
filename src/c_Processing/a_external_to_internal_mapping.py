@@ -8,9 +8,9 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
     by summing all external measures that share the same standardized target,
     as defined in external_mappings.csv for the given state.
 
-    Rows whose external measure maps to a standardized name are removed and
-    replaced by a single summed row per standardized measure. Rows not
-    referenced in the config are passed through unchanged.
+    All original rows are preserved. For each standardized target, a new
+    aggregated row is appended as the sum of the mapped external measures.
+    Rows not referenced in the config are passed through unchanged.
 
     Args:
         df: DataFrame with MultiIndex (Org ID, Organization Name, Measure)
@@ -45,7 +45,7 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
 
     ext_mask = df.index.get_level_values('Measure').isin(relevant_ext)
     df_to_agg = df[ext_mask].copy()
-    df_remaining = df[~ext_mask]
+    df_remaining = df
 
     new_measures = df_to_agg.index.get_level_values('Measure').map(relevant_ext)
     df_to_agg.index = pd.MultiIndex.from_arrays(
