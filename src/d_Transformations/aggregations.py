@@ -17,7 +17,7 @@ def create_mean_df(df: pd.DataFrame) -> pd.DataFrame:
     return mean_df
 
 
-def create_failed_hospital_df(df: pd.DataFrame, num_years=4) -> pd.DataFrame:
+def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
     """
     Takes a dataframe where the columns are yearly data. Filters down only to hospitals that have failed
     and returns dataframe in the form: Organization | Measure | ... T - 2 | T - 1 | T

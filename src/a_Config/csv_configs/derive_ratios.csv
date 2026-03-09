@@ -6,5 +6,6 @@ Operating Margin,Total Operating Revenue,Denominator,
 Average Age of Plant,Accumulated Depreciation,Numerator,
 Average Age of Plant,Depreciation and Amortization,Denominator,
 Current Days Cash on Hand,Cash and Investments (Unrestricted),Numerator,365
+Current Days Cash on Hand,Current Assets Whose Use is Limited,Numerator,365
 Current Days Cash on Hand,Total Operating Expenses,Denominator,
 Current Days Cash on Hand,Depreciation and Amortization,Denominator,-1

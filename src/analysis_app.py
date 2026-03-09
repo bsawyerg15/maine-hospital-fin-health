@@ -24,6 +24,11 @@ selected_date = st.sidebar.selectbox(
     index=0
 )
 
+num_years_ma = st.sidebar.number_input(
+    'Number of Years Before Failing',
+    1, 10, 5
+)
+
 # is_restrict_failed = st.sidebar.checkbox(
 #     'Restrict Failed to Analysis Period',
 #     help='Checking this will only include hospitals that failed within analysis period in the top charts.'
@@ -37,7 +42,7 @@ hospital_df = process_financial_df('ME')
 
 mean_df = create_mean_df(hospital_df)
 
-failed_hospital_df = create_failed_hospital_df(hospital_df)
+failed_hospital_df = create_failed_hospital_df(hospital_df, num_years_ma + 1)
 
 all_ratios_comparison_df = filter_to_non_failed_hospitals(hospital_df)
 
@@ -45,15 +50,15 @@ mean_failed_df = failed_hospital_df.groupby(level='Measure').mean()
 
 non_failed_mean_df = create_mean_df(all_ratios_comparison_df)
 
-ma_failed_df = take_moving_average(mean_failed_df, 3)
+ma_failed_df = take_moving_average(mean_failed_df, num_years_ma)
 
 derived_ratios_df = derive_ratios(hospital_df)
 
-derived_ma_ratios_df = derive_ratios(take_moving_average(hospital_df, 3))
+derived_ma_ratios_df = derive_ratios(take_moving_average(hospital_df, num_years_ma))
 
-failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df)
+failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df, num_years_ma + 1)
 
-failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df)
+failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df, num_years_ma + 1)
 
 non_failed_derived_ratios = filter_to_non_failed_hospitals(derived_ratios_df)
 
@@ -89,6 +94,7 @@ with col:
             all_non_failed_values, 
             failed_derived_ratios_df.xs(selected_measure, level='Measure')['T - 1'],
             failed_derived_ma_ratios_df.xs(selected_measure, level='Measure')['T - 1'],
+            num_years_ma,
             selected_measure),
             use_container_width=True
     )
@@ -100,7 +106,7 @@ with col1:
         plot_mean_bar_chart([derived_ratios_df.xs(selected_measure, level='Measure').stack(), 
                              failed_derived_ratios_df.xs(selected_measure, level='Measure')['T'],
                              failed_derived_ma_ratios_df.xs(selected_measure, level='Measure')['T - 1']
-                             ], ['Operational', 'Failed Year', '3yma Before Failing'],
+                             ], ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
                              title=f'Mean {selected_measure} +/- 1 Std. Dev.'
                              )
         )

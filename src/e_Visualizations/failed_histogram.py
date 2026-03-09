@@ -2,7 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 
-def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, measure_name, bins=20, title=None):
+def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num_years_ma, measure_name, bins=20, title=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -50,7 +50,7 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, mea
     fig.add_trace(go.Histogram(
         x=moving_avg_failed_col,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name="3yma Before Failed",
+        name=f"{num_years_ma}yma Before Failed",
         marker_color="gray",
         opacity=0.7,
         yaxis="y2",
