@@ -29,6 +29,10 @@ num_years_ma = st.sidebar.number_input(
     1, 10, 5
 )
 
+selected_states = st.sidebar.multiselect(
+    'States', ['ME', 'MA'], default=['ME']
+)
+
 # is_restrict_failed = st.sidebar.checkbox(
 #     'Restrict Failed to Analysis Period',
 #     help='Checking this will only include hospitals that failed within analysis period in the top charts.'
@@ -38,7 +42,11 @@ num_years_ma = st.sidebar.number_input(
 # Data Inputs
 #######################################################################################################
 
-hospital_df = process_financial_df('MA')
+dfs = []
+for state in selected_states:
+    df = process_financial_df(state)
+    dfs.append(df)
+hospital_df = pd.concat(dfs)
 
 mean_df = create_mean_df(hospital_df)
 

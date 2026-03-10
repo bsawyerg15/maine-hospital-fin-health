@@ -12,6 +12,7 @@ def create_mean_df(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.
     """
+    df = df.drop(columns=['State'])
     mean_df = df.groupby(level='Measure').mean()
     mean_df['Total'] = mean_df.stack().groupby(level='Measure').mean()
     return mean_df

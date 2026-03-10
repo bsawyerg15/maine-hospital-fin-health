@@ -49,7 +49,8 @@ def process_financial_df(state, input_df=None) -> pd.DataFrame:
 
     if not input_df:
         input_df = get_financials_by_state(state)
-
+    input_df.insert(0, 'State', state)
+    
     financials_schema.validate(input_df) # validate that the input df conforms to the expected shape 
     df_with_external_mapping = apply_external_mappings(input_df, state)
     drop_non_model_measures(df_with_external_mapping)
