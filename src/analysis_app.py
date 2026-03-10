@@ -38,7 +38,7 @@ num_years_ma = st.sidebar.number_input(
 # Data Inputs
 #######################################################################################################
 
-hospital_df = process_financial_df('ME')
+hospital_df = process_financial_df('MA')
 
 mean_df = create_mean_df(hospital_df)
 

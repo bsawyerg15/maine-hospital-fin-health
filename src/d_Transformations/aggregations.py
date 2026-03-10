@@ -35,15 +35,20 @@ def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
 
         year_failed = int(row['Year Failed'])
         relevant_years = [y for y in year_cols if int(y) <= year_failed]
-        num_missing_years = year_failed - int(relevant_years[-1])
-        selected_years = relevant_years[-(num_years - num_missing_years):]
+        num_missing_years_after = year_failed - int(relevant_years[-1])
+        selected_years = relevant_years[-(num_years - num_missing_years_after):]
 
         if not selected_years:
             continue
 
         hospital_data = df.xs(hospital, level='Organization')[selected_years].copy()
-        for i in range(num_missing_years):
+        for i in range(num_missing_years_after):
             hospital_data[f'blank_{i}'] = np.nan
+
+        first_anticipated_year = int(year_failed) - num_years + 1
+        num_missing_years_before = int(selected_years[0]) - first_anticipated_year
+        for i in range(num_missing_years_before):
+            hospital_data.insert(0, f'before_{i}', np.nan)
 
         n = num_years
         hospital_data.columns = [

@@ -14,7 +14,7 @@ from d_Transformations.derived_ratios import derive_ratios
 # Data Inputs
 #######################################################################################################
 
-dollar_df = process_financial_df('ME')
+dollar_df = process_financial_df('MA')
 
 residual_df = calculate_residuals(dollar_df)
 

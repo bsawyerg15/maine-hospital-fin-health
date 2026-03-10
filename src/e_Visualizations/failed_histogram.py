@@ -21,6 +21,7 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num
     """
     pop_values = not_failed_col.dropna()
     failed_values = failed_col.dropna()
+    moving_avg_failed_col = moving_avg_failed_col.dropna()
 
     # Compute shared bin edges from the combined range
     all_values = np.concatenate([pop_values.values, failed_values.values, moving_avg_failed_col.values])
