@@ -63,6 +63,9 @@ def add_computed_parent_rows(df: pd.DataFrame) -> pd.DataFrame:
     then inserts any parent rows that are present in the computed sums but absent
     from the input dataframe. Existing rows are left unchanged.
 
+    Recursively repeats until no new rows can be computed, allowing multi-level
+    parent hierarchies to be fully resolved.
+
     Args:
         df: DataFrame with MultiIndex (Organization, Measure) and numeric year columns.
 
@@ -70,10 +73,12 @@ def add_computed_parent_rows(df: pd.DataFrame) -> pd.DataFrame:
         DataFrame augmented with computed rows for any parent measures not already present.
     """
     children_sums = calculate_children_sums(df)
+    children_sums.dropna(axis=0, how='all', inplace=True)
     new_rows = children_sums[~children_sums.index.isin(df.index)]
     if new_rows.empty:
         return df
-    return pd.concat([df, new_rows])
+    augmented_df = pd.concat([df, new_rows])
+    return add_computed_parent_rows(augmented_df) # TODO: somewhat inefficient because it recalcs on the whole dataframe, not just the siblings of new rows which is all that might have changed
 
 
 def calculate_residuals(df: pd.DataFrame) -> pd.DataFrame:
