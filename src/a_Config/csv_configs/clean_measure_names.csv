@@ -1,4 +1,5 @@
 State,As Reported,Standardized
+ME,Fund Balance Unrestricted,Total Equity
 ME,Cash and Investment,Cash and Investments
 ME,Board Designated and Undesignated Investments,Board Designated & Undesignated Investments
 ME,"Gross Property, Plant and Equipment","Gross Property, Plant and Equipment (PP&E)"
@@ -75,7 +76,7 @@ MA,Long Term Debt Net of Current Portion,Long Term Debt
 MA,Non Current Liabilities Due to Affiliates,Due to Affiliates (Non-Current)
 MA,Other Non Current Liabilities,Other Non-Current Liabilities
 MA,Total Non Current Liabilities,Total Non-Current Liabilities
-MA,Net Unrestricted Assets,Fund Balance Unrestricted
+MA,Net Unrestricted Assets,Total Equity
 MA,Net Temporarily Restricted Assets,Temporarily Restricted Net Assets
 MA,Net Permanently Restricted Assets,Permanently Restricted Net Assets
 MA,Total Liabilities And Net Assets or Equity,Total Liabilities and Equity

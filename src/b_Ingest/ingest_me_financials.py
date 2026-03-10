@@ -72,7 +72,7 @@ def augment_input_df_with_parent(df: pd.DataFrame) -> pd.DataFrame:
         "Total Unrestricted Assets",
         "Total Current Liabilities",
         "Total Non-Current Liabilities",
-        "Fund Balance Unrestricted",
+        "Total Equity",
         "Total Liabilities and Equity",
         "Total Restricted Assets",
         "Total Restricted Liabilities and Equity",
