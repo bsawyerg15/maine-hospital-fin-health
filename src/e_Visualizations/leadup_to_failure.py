@@ -30,7 +30,7 @@ def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None, row_labe
         labels = df[row_label_col].astype(str)
     else:
         plot_df = df
-        labels = df.index.astype(str)
+        labels = df.index.get_level_values('Organization')
 
     x = list(plot_df.columns)
 

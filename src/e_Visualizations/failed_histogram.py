@@ -1,5 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
+import My_Functions
 
 
 def plot_failed_histogram(all_transformations_df, failed_df, measure_name, ma_years=None, bins=20, title=None):
@@ -20,21 +21,21 @@ def plot_failed_histogram(all_transformations_df, failed_df, measure_name, ma_ye
         Chart title.
     """
     endpoint_or_ma = 'MA' if ma_years else 'Endpoint'
-    input_pop_df = all_transformations_df.xs(endpoint_or_ma, level='Endpoint or MA')[lambda d: d['Year Failed'].isna()]
-    input_failed_df = failed_df[failed_df['Endpiont or MA'] == endpoint_or_ma]
+    input_non_failed_df = all_transformations_df.filter_multiindex([(measure_name, 'Measure'), (endpoint_or_ma, 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])[lambda d: d['Year Failed'].isna()]
+    input_failed_df = failed_df.filter_multiindex([(measure_name, 'Measure'), (endpoint_or_ma, 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])
     
-    pop_values = input_pop_df.xs(measure_name, level='Measure').stack().dropna()
-    failed_values = input_failed_df.xs(measure_name, level='Measure')['T - 1'].dropna()
+    non_failed_values = input_non_failed_df.stack().dropna()
+    failed_values = input_failed_df['T - 1'].dropna()
 
     # Compute shared bin edges from the combined range
-    all_values = np.concatenate([pop_values.values, failed_values.values])
+    all_values = np.concatenate([non_failed_values.values, failed_values.values])
     bin_edges = np.histogram_bin_edges(all_values, bins=bins)
     bin_size = bin_edges[1] - bin_edges[0]
 
     fig = go.Figure()
 
     fig.add_trace(go.Histogram(
-        x=pop_values,
+        x=non_failed_values,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
         name="Operational Hospitals" if not ma_years else f"Operational Hospitals ({ma_years}yma)",
         marker_color="steelblue",

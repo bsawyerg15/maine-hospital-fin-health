@@ -14,6 +14,9 @@ from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure
+import My_Functions  # registers df.filter_multiindex accessor
+idx = pd.IndexSlice
+
 
 #######################################################################################################
 # User Inputs
@@ -100,11 +103,15 @@ with side_col:
         )
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
+measure_df = all_transformations_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived'])
+failed_measure_df = failed_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived'])
+non_failed_measure_df = measure_df[measure_df['Year Failed'].isna()]
+
 # non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
 
-all_non_failed_values = non_failed_df.stack()
-non_failed_mean = all_non_failed_values.mean()
-non_failed_std_dev = all_non_failed_values.std()
+all_non_failed_endpoints = non_failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']).stack()
+non_failed_mean = all_non_failed_endpoints.mean()
+non_failed_std_dev = all_non_failed_endpoints.std()
 
 # histogram_non_failed_vals = non_failed_derived_ma_ratios_df.xs(selected_measure, level='Measure').stack() if is_use_ma_for_hist else all_non_failed_values
 # histogram_failed_df = failed_derived_ratios_df if not is_use_ma_for_hist else failed_derived_ma_ratios_df
@@ -124,9 +131,9 @@ col1, _, col2 = st.columns([1, 0.2, 2])
 
 with col1:
     st.plotly_chart(
-        plot_mean_bar_chart([derived_ratios_df.xs(selected_measure, level='Measure').stack(), 
-                             failed_derived_ratios_df.xs(selected_measure, level='Measure')['T'],
-                             failed_derived_ma_ratios_df.xs(selected_measure, level='Measure')['T - 1']
+        plot_mean_bar_chart([measure_df[measure_df['Year Failed'].isna()].filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']).select_dtypes('number').stack(),
+                             failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])['T'],
+                             failed_measure_df.filter_multiindex([('MA', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])['T - 1']
                              ], ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
                              title=f'Mean {selected_measure} +/- 1 Std. Dev.'
                              )
@@ -134,7 +141,7 @@ with col1:
     
 with col2:
     st.plotly_chart(
-        plot_leadup_to_failure(failed_derived_ratios_df.xs(selected_measure, level='Measure'),
+        plot_leadup_to_failure(failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']),
                                non_failed_mean,
                                non_failed_std_dev,
                                yaxis_title=selected_measure, title=f'Lead Up to Failure vs Population: {selected_measure}')
@@ -144,13 +151,13 @@ with col2:
 # Tables
 #######################################################################################################
 
-all_ratios_comparison_df = non_failed_mean_df[[selected_date]].join(ma_failed_df[['T - 1']])
-all_ratios_comparison_df.columns = ['Operating', '3yma Before Failing']
-all_ratios_comparison_df['Diff'] = all_ratios_comparison_df['3yma Before Failing'] - all_ratios_comparison_df['Operating']
-all_ratios_comparison_df = all_ratios_comparison_df.round(1)
+# all_ratios_comparison_df = non_failed_mean_df[[selected_date]].join(ma_failed_df[['T - 1']])
+# all_ratios_comparison_df.columns = ['Operating', '3yma Before Failing']
+# all_ratios_comparison_df['Diff'] = all_ratios_comparison_df['3yma Before Failing'] - all_ratios_comparison_df['Operating']
+# all_ratios_comparison_df = all_ratios_comparison_df.round(1)
 
-create_hierarchical_aggrid(all_ratios_comparison_df, ['Ratios'])
+# create_hierarchical_aggrid(all_ratios_comparison_df, ['Ratios'])
 
-st.dataframe(derived_ratios_df)
+# st.dataframe(derived_ratios_df)
 
-st.dataframe(derived_ma_ratios_df)
+# st.dataframe(derived_ma_ratios_df)

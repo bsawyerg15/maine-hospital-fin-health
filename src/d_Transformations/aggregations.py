@@ -57,8 +57,8 @@ def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
             for i in range(n)
         ]
         hospital_data.index = pd.MultiIndex.from_tuples(
-            [(hospital, m) for m in hospital_data.index],
-            names=['Organization', 'Measure']
+            [(hospital,) + m for m in hospital_data.index],
+            names=['Organization', 'State', 'Measure', 'Endpoint or MA', 'Raw or Derived']
         )
         result_dfs.append(hospital_data)
 
@@ -71,6 +71,6 @@ def filter_to_non_failed_hospitals(df: pd.DataFrame) -> pd.DataFrame:
     """
     Filters out all hospitals that have failed.
     """
-    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index.get_level_values('Hospital Name'))
+    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index.get_level_values('Organization'))
     orgs = df.index.get_level_values('Organization')
     return df[~orgs.isin(failed_hospitals)]
