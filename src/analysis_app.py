@@ -9,6 +9,7 @@ from c_Processing.c_main_data_pipeline import create_full_underived_df
 from d_Transformations.aggregations import create_mean_df, create_failed_hospital_df, filter_to_non_failed_hospitals
 from d_Transformations.moving_average import take_moving_average
 from d_Transformations.derived_ratios import derive_ratios
+from d_Transformations.transformation_pipeline import run_transformation_pipeline
 from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
@@ -42,31 +43,35 @@ selected_states = st.sidebar.multiselect(
 # Data Inputs
 #######################################################################################################
 
-hospital_df = create_full_underived_df(selected_states)
+underived_df = create_full_underived_df(selected_states)
 
-mean_df = create_mean_df(hospital_df)
+all_transformations_df = run_transformation_pipeline(underived_df)
 
-failed_hospital_df = create_failed_hospital_df(hospital_df, num_years_ma + 1)
+failed_df = create_failed_hospital_df(all_transformations_df, num_years_ma + 1)
 
-all_ratios_comparison_df = filter_to_non_failed_hospitals(hospital_df)
+# mean_df = create_mean_df(hospital_df)
 
-mean_failed_df = failed_hospital_df.groupby(level='Measure').mean()
+# failed_hospital_df = create_failed_hospital_df(hospital_df, num_years_ma + 1)
 
-non_failed_mean_df = create_mean_df(all_ratios_comparison_df)
+# all_ratios_comparison_df = filter_to_non_failed_hospitals(hospital_df)
 
-ma_failed_df = take_moving_average(mean_failed_df, num_years_ma)
+# mean_failed_df = failed_hospital_df.groupby(level='Measure').mean()
 
-derived_ratios_df = derive_ratios(hospital_df)
+# non_failed_mean_df = create_mean_df(all_ratios_comparison_df)
 
-derived_ma_ratios_df = derive_ratios(take_moving_average(hospital_df, num_years_ma))
+# ma_failed_df = take_moving_average(mean_failed_df, num_years_ma)
 
-failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df, num_years_ma + 1)
+# derived_ratios_df = derive_ratios(hospital_df)
 
-failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df, num_years_ma + 1)
+# derived_ma_ratios_df = derive_ratios(take_moving_average(hospital_df, num_years_ma))
 
-non_failed_derived_ratios_df = filter_to_non_failed_hospitals(derived_ratios_df)
+# failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df, num_years_ma + 1)
 
-non_failed_derived_ma_ratios_df = take_moving_average(non_failed_derived_ratios_df, num_years_ma)
+# failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df, num_years_ma + 1)
+
+# non_failed_derived_ratios_df = filter_to_non_failed_hospitals(derived_ratios_df)
+
+# non_failed_derived_ma_ratios_df = take_moving_average(non_failed_derived_ratios_df, num_years_ma)
 
 #######################################################################################################
 # Viz
@@ -88,23 +93,27 @@ margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
-    selected_measure = st.selectbox('Measure', derived_ratios_df.index.get_level_values(1).unique(), 2)
+    selected_measure = st.selectbox(
+        'Measure', 
+        all_transformations_df[all_transformations_df.index.get_level_values('Raw or Derived') == 'Derived'].index.get_level_values('Measure').unique(),
+        2
+        )
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
-non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
+# non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
 
 all_non_failed_values = non_failed_df.stack()
 non_failed_mean = all_non_failed_values.mean()
 non_failed_std_dev = all_non_failed_values.std()
 
-histogram_non_failed_vals = non_failed_derived_ma_ratios_df.xs(selected_measure, level='Measure').stack() if is_use_ma_for_hist else all_non_failed_values
-histogram_failed_df = failed_derived_ratios_df if not is_use_ma_for_hist else failed_derived_ma_ratios_df
+# histogram_non_failed_vals = non_failed_derived_ma_ratios_df.xs(selected_measure, level='Measure').stack() if is_use_ma_for_hist else all_non_failed_values
+# histogram_failed_df = failed_derived_ratios_df if not is_use_ma_for_hist else failed_derived_ma_ratios_df
 
 with col:
     st.plotly_chart(
         plot_failed_histogram(
-            histogram_non_failed_vals,
-            histogram_failed_df.xs(selected_measure, level='Measure')['T - 1'],
+            all_transformations_df,
+            failed_df,
             selected_measure,
             ma_years = num_years_ma if is_use_ma_for_hist else None,
             ),

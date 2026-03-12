@@ -2,7 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 
-def plot_failed_histogram(not_failed_col, failed_col, measure_name, ma_years=None, bins=20, title=None):
+def plot_failed_histogram(all_transformations_df, failed_df, measure_name, ma_years=None, bins=20, title=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -19,8 +19,12 @@ def plot_failed_histogram(not_failed_col, failed_col, measure_name, ma_years=Non
     title : str, optional
         Chart title.
     """
-    pop_values = not_failed_col.dropna()
-    failed_values = failed_col.dropna()
+    endpoint_or_ma = 'MA' if ma_years else 'Endpoint'
+    input_pop_df = all_transformations_df.xs(endpoint_or_ma, level='Endpoint or MA')[lambda d: d['Year Failed'].isna()]
+    input_failed_df = failed_df[failed_df['Endpiont or MA'] == endpoint_or_ma]
+    
+    pop_values = input_pop_df.xs(measure_name, level='Measure').stack().dropna()
+    failed_values = input_failed_df.xs(measure_name, level='Measure')['T - 1'].dropna()
 
     # Compute shared bin edges from the combined range
     all_values = np.concatenate([pop_values.values, failed_values.values])

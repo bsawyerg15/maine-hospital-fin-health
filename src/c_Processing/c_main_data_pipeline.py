@@ -57,17 +57,21 @@ def process_state_input_df(state, input_df=None) -> pd.DataFrame:
 
     processed_df = df_with_sum_of_children
 
-    processed_df.insert(0, 'State', state)
-    processed_df.insert(1, 'Endpoint or MA', 'Endpoint')
-    processed_df.insert(2, 'Raw or Derived', 'Raw')
-    processed_df.insert(3, 'Year Failed', '') # TODO: fill in with actual value
+    processed_df['State'] = state
+    processed_df = processed_df.set_index('State', append=True).reorder_levels(['Organization', 'State', 'Measure'])
+    processed_df['Endpoint or MA'] = 'Endpoint'
+    processed_df['Raw or Derived'] = 'Raw'
+    processed_df = processed_df.set_index(['Endpoint or MA', 'Raw or Derived'], append=True)
+    processed_df.insert(0, 'Year Failed', '') # TODO: fill in with actual value
 
-    financials_schema.validate(processed_df) # validate that the input df conforms to the expected shape 
+    financials_schema.validate(processed_df) # validate that the input df conforms to the expected shape
     return processed_df
 
 
 def create_full_underived_df(states: list) -> pd.DataFrame:
     """
+    Outer loop for the initial processing pipeline. Takes in a list of states and returns the input dataframe
+    for all states without any derivation or averages.
     """
     dfs = []
     for state in states:
