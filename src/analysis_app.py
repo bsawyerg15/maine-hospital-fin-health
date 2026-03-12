@@ -5,7 +5,7 @@ from b_Ingest.ingest_me_financials import create_combined_me_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from c_Processing.b_sum_of_children import calculate_residuals
-from c_Processing.c_main_data_pipeline import process_financial_df
+from c_Processing.c_main_data_pipeline import create_full_underived_df
 from d_Transformations.aggregations import create_mean_df, create_failed_hospital_df, filter_to_non_failed_hospitals
 from d_Transformations.moving_average import take_moving_average
 from d_Transformations.derived_ratios import derive_ratios
@@ -42,11 +42,7 @@ selected_states = st.sidebar.multiselect(
 # Data Inputs
 #######################################################################################################
 
-dfs = []
-for state in selected_states:
-    df = process_financial_df(state)
-    dfs.append(df)
-hospital_df = pd.concat(dfs)
+hospital_df = create_full_underived_df(selected_states)
 
 mean_df = create_mean_df(hospital_df)
 

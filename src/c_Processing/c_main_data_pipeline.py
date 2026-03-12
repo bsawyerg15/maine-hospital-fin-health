@@ -35,7 +35,7 @@ def drop_non_model_measures(df: pd.DataFrame) -> pd.DataFrame:
     return df[mask]
 
 
-def process_financial_df(state, input_df=None) -> pd.DataFrame:
+def process_state_input_df(state, input_df=None) -> pd.DataFrame:
     """
     Runs the primary processing pipeline for the financials. Runs the following steps:
     - Validates input dataframe adheres to index=[Organization, Measure], columns are string years.
@@ -49,12 +49,30 @@ def process_financial_df(state, input_df=None) -> pd.DataFrame:
 
     if not input_df:
         input_df = get_financials_by_state(state)
-    input_df.insert(0, 'State', state)
-    
-    financials_schema.validate(input_df) # validate that the input df conforms to the expected shape 
+
     df_with_external_mapping = apply_external_mappings(input_df, state)
     drop_non_model_measures(df_with_external_mapping)
     # verify_measures_against_model(df_with_external_mapping)
     df_with_sum_of_children = add_computed_parent_rows(df_with_external_mapping)
 
-    return df_with_sum_of_children
+    processed_df = df_with_sum_of_children
+
+    processed_df.insert(0, 'State', state)
+    processed_df.insert(1, 'Endpoint or MA', 'Endpoint')
+    processed_df.insert(2, 'Raw or Derived', 'Raw')
+    processed_df.insert(3, 'Year Failed', '') # TODO: fill in with actual value
+
+    financials_schema.validate(processed_df) # validate that the input df conforms to the expected shape 
+    return processed_df
+
+
+def create_full_underived_df(states: list) -> pd.DataFrame:
+    """
+    """
+    dfs = []
+    for state in states:
+        df = process_state_input_df(state)
+        dfs.append(df)
+    underived_df = pd.concat(dfs)
+
+    return underived_df
