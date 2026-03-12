@@ -1,5 +1,5 @@
 import pandas as pd
-from a_Config.global_constants import VALID_MEASURES
+from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
 from a_Config.financials_schema import financials_schema
 from b_Ingest.ingest_union import get_financials_by_state
 from c_Processing.a_external_to_internal_mapping import apply_external_mappings
@@ -62,7 +62,7 @@ def process_state_input_df(state, input_df=None) -> pd.DataFrame:
     processed_df['Endpoint or MA'] = 'Endpoint'
     processed_df['Raw or Derived'] = 'Raw'
     processed_df = processed_df.set_index(['Endpoint or MA', 'Raw or Derived'], append=True)
-    processed_df.insert(0, 'Year Failed', '') # TODO: fill in with actual value
+    processed_df = HOSPITAL_METADATA[['Year Failed']].join(processed_df, on=['Hospital Name', 'State'], how='right')
 
     financials_schema.validate(processed_df) # validate that the input df conforms to the expected shape
     return processed_df

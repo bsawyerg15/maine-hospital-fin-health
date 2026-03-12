@@ -44,7 +44,7 @@ VALID_MEASURES: Set[str] = set(FINANCIAL_STATEMENT_MODEL.index.str.strip())
 
 HOSPITAL_METADATA: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_metadata.csv')
-).set_index('Hospital Name')
+).set_index(['Hospital Name', 'State'])
 
 @lru_cache(maxsize=None)
 def get_measure_paths() -> Dict[str, str]:

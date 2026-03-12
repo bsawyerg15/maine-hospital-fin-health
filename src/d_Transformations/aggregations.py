@@ -30,7 +30,7 @@ def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
     orgs_in_df = set(df.index.get_level_values('Organization'))
 
     result_dfs = []
-    for hospital, row in failed_hospitals_metadata.iterrows():
+    for (hospital, state), row in failed_hospitals_metadata.iterrows():
         if hospital not in orgs_in_df:
             continue
 
@@ -71,6 +71,6 @@ def filter_to_non_failed_hospitals(df: pd.DataFrame) -> pd.DataFrame:
     """
     Filters out all hospitals that have failed.
     """
-    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index)
+    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index.get_level_values('Hospital Name'))
     orgs = df.index.get_level_values('Organization')
     return df[~orgs.isin(failed_hospitals)]
