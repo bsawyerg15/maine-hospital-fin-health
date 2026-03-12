@@ -2,7 +2,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 
-def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num_years_ma, measure_name, bins=20, title=None):
+def plot_failed_histogram(not_failed_col, failed_col, measure_name, ma_years=None, bins=20, title=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -21,10 +21,9 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num
     """
     pop_values = not_failed_col.dropna()
     failed_values = failed_col.dropna()
-    moving_avg_failed_col = moving_avg_failed_col.dropna()
 
     # Compute shared bin edges from the combined range
-    all_values = np.concatenate([pop_values.values, failed_values.values, moving_avg_failed_col.values])
+    all_values = np.concatenate([pop_values.values, failed_values.values])
     bin_edges = np.histogram_bin_edges(all_values, bins=bins)
     bin_size = bin_edges[1] - bin_edges[0]
 
@@ -33,7 +32,7 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num
     fig.add_trace(go.Histogram(
         x=pop_values,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name="Operational Hospitals",
+        name="Operational Hospitals" if not ma_years else f"Operational Hospitals ({ma_years}yma)",
         marker_color="steelblue",
         opacity=0.6,
         yaxis="y1",
@@ -42,20 +41,10 @@ def plot_failed_histogram(not_failed_col, failed_col, moving_avg_failed_col, num
     fig.add_trace(go.Histogram(
         x=failed_values,
         xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name="Year Failed",
+        name="Year Failed" if not ma_years else f'{ma_years}yma Prior to Failure',
         marker_color="firebrick",
         opacity=0.7,
         yaxis="y2",
-    ))
-
-    fig.add_trace(go.Histogram(
-        x=moving_avg_failed_col,
-        xbins=dict(start=bin_edges[0], end=bin_edges[-1], size=bin_size),
-        name=f"{num_years_ma}yma Before Failed",
-        marker_color="gray",
-        opacity=0.7,
-        yaxis="y2",
-        visible='legendonly'
     ))
 
     fig.update_layout(

@@ -68,7 +68,9 @@ failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df, num_year
 
 failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df, num_years_ma + 1)
 
-non_failed_derived_ratios = filter_to_non_failed_hospitals(derived_ratios_df)
+non_failed_derived_ratios_df = filter_to_non_failed_hospitals(derived_ratios_df)
+
+non_failed_derived_ma_ratios_df = take_moving_average(non_failed_derived_ratios_df, num_years_ma)
 
 #######################################################################################################
 # Viz
@@ -91,19 +93,25 @@ _, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
     selected_measure = st.selectbox('Measure', derived_ratios_df.index.get_level_values(1).unique(), 2)
+    is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
-all_non_failed_values = non_failed_derived_ratios.xs(selected_measure, level='Measure').stack()
+non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
+
+all_non_failed_values = non_failed_df.stack()
 non_failed_mean = all_non_failed_values.mean()
 non_failed_std_dev = all_non_failed_values.std()
+
+histogram_non_failed_vals = non_failed_derived_ma_ratios_df.xs(selected_measure, level='Measure').stack() if is_use_ma_for_hist else all_non_failed_values
+histogram_failed_df = failed_derived_ratios_df if not is_use_ma_for_hist else failed_derived_ma_ratios_df
 
 with col:
     st.plotly_chart(
         plot_failed_histogram(
-            all_non_failed_values, 
-            failed_derived_ratios_df.xs(selected_measure, level='Measure')['T - 1'],
-            failed_derived_ma_ratios_df.xs(selected_measure, level='Measure')['T - 1'],
-            num_years_ma,
-            selected_measure),
+            histogram_non_failed_vals,
+            histogram_failed_df.xs(selected_measure, level='Measure')['T - 1'],
+            selected_measure,
+            ma_years = num_years_ma if is_use_ma_for_hist else None,
+            ),
             use_container_width=True
     )
 
