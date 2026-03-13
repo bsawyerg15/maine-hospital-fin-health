@@ -1,21 +1,11 @@
 import streamlit as st
-import pandas as pd
-import os
-from b_Ingest.ingest_me_financials import create_combined_me_financial_df
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
-from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
-from c_Processing.b_sum_of_children import calculate_residuals
-from c_Processing.c_main_data_pipeline import create_full_underived_df
-from d_Transformations.aggregations import create_mean_df, create_failed_hospital_df, filter_to_non_failed_hospitals
-from d_Transformations.moving_average import take_moving_average
-from d_Transformations.derived_ratios import derive_ratios
+from a_Config.global_constants import DERIVE_RATIOS
+from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
+from d_Transformations.aggregations import create_failed_dataset
 from d_Transformations.transformation_pipeline import run_transformation_pipeline
-from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure
-import My_Functions  # registers df.filter_multiindex accessor
-idx = pd.IndexSlice
 
 
 #######################################################################################################
@@ -37,44 +27,13 @@ selected_states = st.sidebar.multiselect(
     'States', ['ME', 'MA'], default=['ME']
 )
 
-# is_restrict_failed = st.sidebar.checkbox(
-#     'Restrict Failed to Analysis Period',
-#     help='Checking this will only include hospitals that failed within analysis period in the top charts.'
-# )
-
 #######################################################################################################
-# Data Inputs
+# Data
 #######################################################################################################
 
 underived_df = create_full_underived_df(selected_states)
-
-all_transformations_df = run_transformation_pipeline(underived_df, num_years_ma)
-
-failed_df = create_failed_hospital_df(all_transformations_df, num_years_ma + 1)
-
-# mean_df = create_mean_df(hospital_df)
-
-# failed_hospital_df = create_failed_hospital_df(hospital_df, num_years_ma + 1)
-
-# all_ratios_comparison_df = filter_to_non_failed_hospitals(hospital_df)
-
-# mean_failed_df = failed_hospital_df.groupby(level='Measure').mean()
-
-# non_failed_mean_df = create_mean_df(all_ratios_comparison_df)
-
-# ma_failed_df = take_moving_average(mean_failed_df, num_years_ma)
-
-# derived_ratios_df = derive_ratios(hospital_df)
-
-# derived_ma_ratios_df = derive_ratios(take_moving_average(hospital_df, num_years_ma))
-
-# failed_derived_ratios_df = create_failed_hospital_df(derived_ratios_df, num_years_ma + 1)
-
-# failed_derived_ma_ratios_df = create_failed_hospital_df(derived_ma_ratios_df, num_years_ma + 1)
-
-# non_failed_derived_ratios_df = filter_to_non_failed_hospitals(derived_ratios_df)
-
-# non_failed_derived_ma_ratios_df = take_moving_average(non_failed_derived_ratios_df, num_years_ma)
+ds = run_transformation_pipeline(to_dataset(underived_df), num_years_ma)
+failed_ds = create_failed_dataset(ds, num_years_ma + 1)
 
 #######################################################################################################
 # Viz
@@ -95,69 +54,49 @@ st.title("What are the financial characteristics of failed hospitals?")
 margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
+derived_measures = list(DERIVE_RATIOS['Measure'].unique())
+
 with side_col:
-    selected_measure = st.selectbox(
-        'Measure', 
-        all_transformations_df[all_transformations_df.index.get_level_values('Raw or Derived') == 'Derived'].index.get_level_values('Measure').unique(),
-        2
-        )
+    selected_measure = st.selectbox('Measure', derived_measures, 2)
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
-measure_df = all_transformations_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived', 'Year'])
-failed_measure_df = failed_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived', 'Year'])
-non_failed_measure_df = measure_df[measure_df['Year Failed'].isna()]
-
-# non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
-
-all_non_failed_endpoints = non_failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])['Value']
-non_failed_mean = all_non_failed_endpoints.mean()
-non_failed_std_dev = all_non_failed_endpoints.std()
-
-# histogram_non_failed_vals = non_failed_derived_ma_ratios_df.xs(selected_measure, level='Measure').stack() if is_use_ma_for_hist else all_non_failed_values
-# histogram_failed_df = failed_derived_ratios_df if not is_use_ma_for_hist else failed_derived_ma_ratios_df
+non_failed_da = ds['endpoint'].sel(measure=selected_measure).where(ds['year_failed'].isnull())
+non_failed_mean = float(non_failed_da.mean())
+non_failed_std_dev = float(non_failed_da.std())
 
 with col:
     st.plotly_chart(
         plot_failed_histogram(
-            all_transformations_df,
-            failed_df,
+            ds,
+            failed_ds,
             selected_measure,
-            ma_years = num_years_ma if is_use_ma_for_hist else None,
-            ),
-            use_container_width=True
+            ma_years=num_years_ma if is_use_ma_for_hist else None,
+        ),
+        use_container_width=True
     )
 
 col1, _, col2 = st.columns([1, 0.2, 2])
 
 with col1:
     st.plotly_chart(
-        plot_mean_bar_chart([measure_df[measure_df['Year Failed'].isna()].filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])['Value'],
-                             failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])[lambda d: d['Relative Year'] == 0]['Value'],
-                             failed_measure_df.filter_multiindex([('MA', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])[lambda d: d['Relative Year'] == -1]['Value']
-                             ], ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
-                             title=f'Mean {selected_measure} +/- 1 Std. Dev.'
-                             )
+        plot_mean_bar_chart(
+            [
+                non_failed_da.values.flatten(),
+                failed_ds['endpoint'].sel(measure=selected_measure, relative_year=0).values.flatten(),
+                failed_ds['ma'].sel(measure=selected_measure, relative_year=-1).values.flatten(),
+            ],
+            ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
+            title=f'Mean {selected_measure} +/- 1 Std. Dev.',
         )
-    
-with col2:
-    st.plotly_chart(
-        plot_leadup_to_failure(failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year']),
-                               non_failed_mean,
-                               non_failed_std_dev,
-                               yaxis_title=selected_measure, title=f'Lead Up to Failure vs Population: {selected_measure}')
     )
 
-#######################################################################################################
-# Tables
-#######################################################################################################
-
-# all_ratios_comparison_df = non_failed_mean_df[[selected_date]].join(ma_failed_df[['T - 1']])
-# all_ratios_comparison_df.columns = ['Operating', '3yma Before Failing']
-# all_ratios_comparison_df['Diff'] = all_ratios_comparison_df['3yma Before Failing'] - all_ratios_comparison_df['Operating']
-# all_ratios_comparison_df = all_ratios_comparison_df.round(1)
-
-# create_hierarchical_aggrid(all_ratios_comparison_df, ['Ratios'])
-
-# st.dataframe(derived_ratios_df)
-
-# st.dataframe(derived_ma_ratios_df)
+with col2:
+    st.plotly_chart(
+        plot_leadup_to_failure(
+            failed_ds['endpoint'].sel(measure=selected_measure),
+            non_failed_mean,
+            non_failed_std_dev,
+            yaxis_title=selected_measure,
+            title=f'Lead Up to Failure vs Population: {selected_measure}',
+        )
+    )

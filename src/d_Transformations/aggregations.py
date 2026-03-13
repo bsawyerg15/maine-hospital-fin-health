@@ -1,73 +1,83 @@
 import pandas as pd
-import numpy as np
+import xarray as xr
 from a_Config.global_constants import HOSPITAL_METADATA
 
 
-def create_mean_df(df: pd.DataFrame) -> pd.DataFrame:
+def create_mean_df(ds: xr.Dataset, var: str = 'endpoint') -> xr.DataArray:
     """
-    Takes a dataframe where Year is an index level. Returns the mean Value for each
-    (Measure, Year) combination and adds a 'Total' column for the full-sample mean.
+    Returns the mean Value across organizations for each (measure, year).
 
     Args:
-        df: Adheres to financials_schema
-    Returns:
-        DataFrame with Measure index and Year columns, plus a 'Total' column.
-    """
-    mean_df = df.groupby(level=['Measure', 'Year'])['Value'].mean().unstack('Year')
-    mean_df['Total'] = df.groupby(level='Measure')['Value'].mean()
-    return mean_df
-
-
-def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
-    """
-    Filters down only to hospitals that have failed and returns a tall dataframe with
-    a 'Relative Year' column indicating years relative to failure (0 = failure year,
-    -1 = one year prior, etc.).
+        ds: Financials Dataset with 'endpoint' and 'ma' variables.
+        var: Which variable to average ('endpoint' or 'ma').
 
     Returns:
-        DataFrame in financials_schema format (Year in index) filtered to failed hospitals
-        within num_years of failure, with an added 'Relative Year' column.
+        DataArray with dims (state, measure, year).
     """
-    failed_hospitals_metadata = HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()][['Year Failed']]
+    return ds[var].mean(dim='organization')
 
-    orgs_in_df = set(df.index.get_level_values('Organization'))
 
-    result_dfs = []
-    for (hospital, state), row in failed_hospitals_metadata.iterrows():
-        if hospital not in orgs_in_df:
+def create_failed_dataset(ds: xr.Dataset, num_years: int = 6) -> xr.Dataset:
+    """
+    Filters to failed hospitals and returns a Dataset indexed by relative_year
+    instead of year (0 = failure year, -1 = one year prior, etc.).
+
+    Args:
+        ds: Full financials Dataset with 'endpoint', 'ma', and 'year_failed'.
+        num_years: How many years before (and including) failure to keep.
+
+    Returns:
+        Dataset with dims (organization, measure, relative_year). Missing
+        relative_year slots for hospitals with fewer available years are
+        filled with NaN via outer join on concat. State is carried as a
+        non-dimension coordinate on the organization dimension.
+    """
+    failed_metadata = HOSPITAL_METADATA[HOSPITAL_METADATA['Year Failed'].notna()]
+    all_orgs = set(ds.coords['organization'].values)
+    all_states = set(ds.coords['state'].values)
+    all_years = sorted(int(y) for y in ds.coords['year'].values)
+
+    slices = []
+    orgs = []
+    states_out = []
+
+    for (hospital, state), row in failed_metadata.iterrows():
+        if hospital not in all_orgs or state not in all_states:
             continue
 
         year_failed = int(row['Year Failed'])
-        hospital_df = df.xs(hospital, level='Organization')
-        all_years = sorted(hospital_df.index.get_level_values('Year').unique().astype(int))
-
-        relevant_years = [y for y in all_years if y <= year_failed]
-        if not relevant_years:
+        selected = [y for y in all_years if y <= year_failed][-num_years:]
+        if not selected:
             continue
 
-        selected_years = relevant_years[-(num_years):]
+        relative = [y - year_failed for y in selected]
 
-        if not selected_years:
-            continue
+        h_ds = xr.Dataset({
+            var: (
+                ds[var]
+                .sel(organization=hospital, state=state, year=selected)
+                .assign_coords(year=relative)
+                .rename({'year': 'relative_year'})
+            )
+            for var in ('endpoint', 'ma')
+        })
+        slices.append(h_ds)
+        orgs.append(hospital)
+        states_out.append(state)
 
-        year_mask = hospital_df.index.get_level_values('Year').astype(int).isin(selected_years)
-        hospital_data = hospital_df[year_mask].copy()
-        hospital_data.index = pd.MultiIndex.from_tuples(
-            [(hospital,) + m for m in hospital_data.index],
-            names=['Organization'] + hospital_df.index.names
-        )
-        hospital_data['Relative Year'] = hospital_data.index.get_level_values('Year').astype(int) - year_failed
-        result_dfs.append(hospital_data)
+    if not slices:
+        return xr.Dataset()
 
-    if not result_dfs:
-        return pd.DataFrame()
-    return pd.concat(result_dfs)
+    combined = xr.concat(
+        slices,
+        dim=pd.Index(orgs, name='organization'),
+        join='outer',
+    )
+    return combined.assign_coords(state=('organization', states_out))
 
 
-def filter_to_non_failed_hospitals(df: pd.DataFrame) -> pd.DataFrame:
+def filter_to_non_failed(ds: xr.Dataset) -> xr.Dataset:
     """
-    Filters out all hospitals that have failed.
+    Masks all organizations that have a non-null year_failed with NaN.
     """
-    failed_hospitals = set(HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()].index.get_level_values('Organization'))
-    orgs = df.index.get_level_values('Organization')
-    return df[~orgs.isin(failed_hospitals)]
+    return ds.where(ds['year_failed'].isnull())

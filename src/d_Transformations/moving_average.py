@@ -1,32 +1,19 @@
-import pandas as pd
+import xarray as xr
 
 
-def take_moving_average(df: pd.DataFrame, num_years: int, min_periods: int = None) -> pd.DataFrame:
+def take_moving_average(da: xr.DataArray, num_years: int) -> xr.DataArray:
     """
-    Computes a rolling moving average over the Year index dimension.
+    Computes a rolling moving average over the year dimension.
+
+    Requires exactly num_years consecutive non-NaN observations to produce a
+    value (no partial windows).
 
     Args:
-        df: DataFrame adhering to financials_schema (MultiIndex ending in Year; 'Value' and
-            'Year Failed' columns).
+        da: DataArray with a 'year' dimension.
         num_years: Window size for the rolling average.
-        min_periods: Minimum number of non-NaN observations required to produce a value.
-                     Defaults to num_years (i.e., no partial windows).
 
     Returns:
-        DataFrame in financials_schema format where each Year row contains the
-        moving average ending on that year.
+        DataArray of same shape where each year contains the moving average
+        ending on that year, or NaN if fewer than num_years observations exist.
     """
-    if min_periods is None:
-        min_periods = num_years
-
-    non_year_levels = df.index.names[:-1]  # everything except 'Year'
-
-    df_sorted = df.sort_index(level='Year')
-    rolled_values = (
-        df_sorted.groupby(level=non_year_levels)['Value']
-        .transform(lambda s: s.rolling(window=num_years, min_periods=min_periods).mean())
-    )
-
-    result = df_sorted.copy()
-    result['Value'] = rolled_values
-    return result
+    return da.rolling(year=num_years, min_periods=num_years).mean()

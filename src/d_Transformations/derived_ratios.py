@@ -1,56 +1,51 @@
-import pandas as pd
+import xarray as xr
+from functools import reduce
 from a_Config.global_constants import DERIVE_RATIOS
 
 
-def derive_ratios(df: pd.DataFrame) -> pd.DataFrame:
+def derive_ratios(da: xr.DataArray) -> xr.DataArray:
     """
-    Derives ratio measures from a financials dataframe using the DERIVE_RATIOS config.
+    Computes derived financial ratio measures and returns a new DataArray
+    with the measure dimension extended to include them.
 
-    For each ratio, computes (sum of numerator components * multipliers) / (sum of denominator
-    components * multipliers). A result is only included for a given organization and year if
-    all component measures are present (non-NaN).
+    NaN propagates naturally through arithmetic: if any component is NaN
+    for a given (organization, state, year), the ratio is NaN.
 
     Args:
-        df: DataFrame with (Organization, State, Measure, Endpoint or MA, Raw or Derived, Year)
-            MultiIndex, a 'Value' column, and a 'Year Failed' metadata column.
+        da: DataArray with dims (organization, state, measure, year).
 
     Returns:
-        DataFrame in the same schema with derived ratio rows. Metadata columns are set to
-        'Endpoint', 'Derived', and the Year Failed inferred per (Organization, State) from the input.
+        DataArray with the same dims, measure dimension extended to include
+        all computable derived ratio names appended at the end.
     """
-    available_measures = set(df.index.get_level_values('Measure'))
-    results = []
+    available = set(da.coords['measure'].values)
+    result = da.copy()
+    new_slices = []
 
     for ratio_name, group in DERIVE_RATIOS.groupby('Measure'):
-        if not all(m in available_measures for m in group['Sub-Measure']):
+        if not all(m in available for m in group['Sub-Measure']):
             continue
 
-        def weighted_sum(sub_group):
-            parts = [
-                df.xs(row['Sub-Measure'], level='Measure')['Value'] * row['Multiplier']
+        num_group = group[group['Numerator or Denominator'] == 'Numerator']
+        den_group = group[group['Numerator or Denominator'] == 'Denominator']
+
+        def component_sum(sub_group):
+            terms = [
+                da.sel(measure=row['Sub-Measure']) * row['Multiplier']
                 for _, row in sub_group.iterrows()
             ]
-            # min_count=len(parts) ensures the sum is NaN for a given org/year
-            # if any component is missing.
-            return pd.concat(parts).groupby(level=['Organization', 'State', 'Year']).sum(min_count=len(parts))
+            # Standard addition propagates NaN: if any term is NaN the
+            # result is NaN, matching the min_count behaviour from pandas.
+            return reduce(lambda a, b: a + b, terms)
 
-        num = weighted_sum(group[group['Numerator or Denominator'] == 'Numerator'])
-        den = weighted_sum(group[group['Numerator or Denominator'] == 'Denominator'])
+        ratio = component_sum(num_group) / component_sum(den_group)
 
-        ratio = num / den
-        ratio.index = pd.MultiIndex.from_tuples(
-            [(org, state, ratio_name, 'Endpoint', 'Derived', year) for org, state, year in ratio.index],
-            names=['Organization', 'State', 'Measure', 'Endpoint or MA', 'Raw or Derived', 'Year']
-        )
-        results.append(ratio)
+        if ratio_name in available:
+            result.loc[dict(measure=ratio_name)] = ratio.values
+        else:
+            new_slices.append(ratio.expand_dims(measure=[ratio_name]))
 
-    if not results:
-        return pd.DataFrame()
+    if new_slices:
+        result = xr.concat([result] + new_slices, dim='measure')
 
-    derived_df = pd.concat(results).rename('Value').to_frame()
-    org_state_to_year_failed = df['Year Failed'].groupby(level=['Organization', 'State']).first()
-    orgs = derived_df.index.get_level_values('Organization')
-    states = derived_df.index.get_level_values('State')
-    derived_df['Year Failed'] = pd.MultiIndex.from_arrays([orgs, states]).map(org_state_to_year_failed)
-
-    return derived_df
+    return result

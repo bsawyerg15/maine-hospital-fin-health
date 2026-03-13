@@ -1,38 +1,44 @@
-import pandas as pd
-from a_Config.financials_schema import financials_schema
+import xarray as xr
 from d_Transformations.derived_ratios import derive_ratios
 from d_Transformations.moving_average import take_moving_average
 
 
-def run_transformation_pipeline(underived_df: pd.DataFrame, ma_years) -> pd.DataFrame:
+def run_transformation_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
     """
-    Runs the full transformation pipeline on an underived financials dataframe.
+    Runs the full transformation pipeline on a raw financials Dataset.
 
-    Steps:
-    1. Computes derived ratios and appends them as 'Derived' endpoint rows.
-    2. Computes moving averages of all endpoint rows and appends them as 'MA' rows.
+    Pipeline order:
+    1. Compute moving average of raw base measures.
+    2. Derive endpoint ratios from raw measures (numerator / denominator).
+    3. Derive MA ratios from MA of raw measures (MA(num) / MA(denom)).
+
+    Step 3 ensures MA ratios are MA(numerator) / MA(denominator),
+    not MA(ratio) — these are not equivalent.
 
     Args:
-        underived_df: DataFrame output from create_full_underived_df, with MultiIndex
-                      (Organization, State, Measure), metadata columns (Endpoint or MA,
-                      Raw or Derived, Year Failed), and year columns.
-        ma_years: Window size for the rolling moving average.
+        ds: Dataset from to_dataset(), with a 'value' variable of shape
+            (organization, state, measure, year) and a 'year_failed'
+            coordinate of shape (organization, state).
+        ma_years: Rolling window size for moving averages.
 
     Returns:
-        DataFrame combining raw endpoints, derived ratio endpoints, and moving average rows,
-        validated against financials_schema.
+        Dataset with 'endpoint' and 'ma' variables, both with shape
+        (organization, state, measure, year) where measure includes raw
+        measures followed by derived ratio names, plus the 'year_failed'
+        coordinate carried over from the input.
     """
-    # --- Step 1: Derive ratios ---
-    derived_df = derive_ratios(underived_df)
-    endpoint_df = pd.concat([underived_df, derived_df]) if not derived_df.empty else underived_df
+    raw_da = ds['value']
 
-    # --- Step 2: Moving average ---
-    # take_moving_average copies the df and updates year cols; non-year cols carry over
-    ma_df = take_moving_average(endpoint_df, ma_years)
-    idx = ma_df.index.to_frame()
-    idx['Endpoint or MA'] = 'MA'
-    ma_df.index = pd.MultiIndex.from_frame(idx)
+    # Step 1: MA of raw base measures
+    ma_raw_da = take_moving_average(raw_da, ma_years)
 
-    result = pd.concat([endpoint_df, ma_df])
-    financials_schema.validate(result)
-    return result
+    # Step 2: Derived ratios from raw endpoints
+    endpoint_da = derive_ratios(raw_da)
+
+    # Step 3: Derived ratios from MA of raw — MA(num) / MA(denom)
+    ma_da = derive_ratios(ma_raw_da)
+
+    return xr.Dataset(
+        {'endpoint': endpoint_da, 'ma': ma_da},
+        coords={'year_failed': ds['year_failed']},
+    )

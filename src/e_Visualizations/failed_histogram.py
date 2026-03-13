@@ -1,34 +1,45 @@
 import numpy as np
 import plotly.graph_objects as go
-import My_Functions
 
 
-def plot_failed_histogram(all_transformations_df, failed_df, measure_name, ma_years=None, bins=20, title=None):
+def plot_failed_histogram(ds, failed_ds, measure_name, ma_years=None, bins=20, title=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
     Parameters
     ----------
-    population_df : pd.DataFrame
-        Full population of hospitals.
-    failed_df : pd.DataFrame
-        Subset of failed hospitals.
-    column : str
-        Column name to plot.
-    bins : int or sequence
-        Number of bins or explicit bin edges.
+    ds : xr.Dataset
+        Full financials Dataset with 'endpoint', 'ma', and 'year_failed'.
+    failed_ds : xr.Dataset
+        Output of create_failed_dataset — indexed by relative_year.
+    measure_name : str
+        Measure to plot.
+    ma_years : int or None
+        If set, uses the 'ma' variable; otherwise uses 'endpoint'.
+    bins : int
+        Number of histogram bins.
     title : str, optional
         Chart title.
     """
-    endpoint_or_ma = 'MA' if ma_years else 'Endpoint'
-    input_non_failed_df = all_transformations_df.filter_multiindex([(measure_name, 'Measure'), (endpoint_or_ma, 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])[lambda d: d['Year Failed'].isna()]
-    input_failed_df = failed_df.filter_multiindex([(measure_name, 'Measure'), (endpoint_or_ma, 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])
+    var = 'ma' if ma_years else 'endpoint'
 
-    non_failed_values = input_non_failed_df['Value'].dropna()
-    failed_values = input_failed_df[input_failed_df['Relative Year'] == -1]['Value'].dropna()
+    non_failed_values = (
+        ds[var].sel(measure=measure_name)
+        .where(ds['year_failed'].isnull())
+        .values.flatten()
+    )
+    non_failed_values = non_failed_values[~np.isnan(non_failed_values)]
 
-    # Compute shared bin edges from the combined range
-    all_values = np.concatenate([non_failed_values.values, failed_values.values])
+    if failed_ds and failed_ds.dims:
+        failed_values = (
+            failed_ds[var].sel(measure=measure_name, relative_year=-1)
+            .values.flatten()
+        )
+        failed_values = failed_values[~np.isnan(failed_values)]
+    else:
+        failed_values = np.array([])
+
+    all_values = np.concatenate([non_failed_values, failed_values])
     bin_edges = np.histogram_bin_edges(all_values, bins=bins)
     bin_size = bin_edges[1] - bin_edges[0]
 

@@ -66,6 +66,7 @@ six @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_six_17
 smmap==5.0.2
 stack_data @ file:///home/conda/feedstock_root/build_artifacts/stack_data_1733569443808/work
 streamlit==1.53.1
+xarray
 streamlit-aggrid==1.2.1.post2
 tenacity==9.1.2
 toml==0.10.2
