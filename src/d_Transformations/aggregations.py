@@ -17,13 +17,13 @@ def create_mean_df(ds: xr.Dataset, var: str = 'endpoint') -> xr.DataArray:
     return ds[var].mean(dim='organization')
 
 
-def create_failed_dataset(ds: xr.Dataset, num_years: int = 6) -> xr.Dataset:
+def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
     """
     Filters to failed hospitals and returns a Dataset indexed by relative_year
     instead of year (0 = failure year, -1 = one year prior, etc.).
 
     Args:
-        ds: Full financials Dataset with 'endpoint', 'ma', and 'year_failed'.
+        ds: Full financials Dataset.
         num_years: How many years before (and including) failure to keep.
 
     Returns:
@@ -59,7 +59,7 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int = 6) -> xr.Dataset:
                 .assign_coords(year=relative)
                 .rename({'year': 'relative_year'})
             )
-            for var in ('endpoint', 'ma')
+            for var in ds.data_vars
         })
         slices.append(h_ds)
         orgs.append(hospital)

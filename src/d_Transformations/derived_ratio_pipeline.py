@@ -3,9 +3,9 @@ from d_Transformations.derived_ratios import derive_ratios
 from d_Transformations.moving_average import take_moving_average
 
 
-def run_transformation_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
+def run_derived_ratio_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
     """
-    Runs the full transformation pipeline on a raw financials Dataset.
+    Computes derived ratio measures from a raw financials Dataset.
 
     Pipeline order:
     1. Compute moving average of raw base measures.
@@ -23,9 +23,9 @@ def run_transformation_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
 
     Returns:
         Dataset with 'endpoint' and 'ma' variables, both with shape
-        (organization, state, measure, year) where measure includes raw
-        measures followed by derived ratio names, plus the 'year_failed'
-        coordinate carried over from the input.
+        (organization, state, measure, year) where measure contains only
+        the derived ratio names, plus the 'year_failed' coordinate carried
+        over from the input.
     """
     raw_da = ds['value']
 
