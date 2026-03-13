@@ -103,13 +103,13 @@ with side_col:
         )
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
-measure_df = all_transformations_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived'])
-failed_measure_df = failed_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived'])
+measure_df = all_transformations_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived', 'Year'])
+failed_measure_df = failed_df.filter_multiindex([(selected_measure, 'Measure')], untouched=['Organization', 'State', 'Endpoint or MA', 'Raw or Derived', 'Year'])
 non_failed_measure_df = measure_df[measure_df['Year Failed'].isna()]
 
 # non_failed_df = non_failed_derived_ratios_df.xs(selected_measure, level='Measure')
 
-all_non_failed_endpoints = non_failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']).stack()
+all_non_failed_endpoints = non_failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])['Value']
 non_failed_mean = all_non_failed_endpoints.mean()
 non_failed_std_dev = all_non_failed_endpoints.std()
 
@@ -131,9 +131,9 @@ col1, _, col2 = st.columns([1, 0.2, 2])
 
 with col1:
     st.plotly_chart(
-        plot_mean_bar_chart([measure_df[measure_df['Year Failed'].isna()].filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']).select_dtypes('number').stack(),
-                             failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])['T'],
-                             failed_measure_df.filter_multiindex([('MA', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State'])['T - 1']
+        plot_mean_bar_chart([measure_df[measure_df['Year Failed'].isna()].filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])['Value'],
+                             failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])[lambda d: d['Relative Year'] == 0]['Value'],
+                             failed_measure_df.filter_multiindex([('MA', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year'])[lambda d: d['Relative Year'] == -1]['Value']
                              ], ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
                              title=f'Mean {selected_measure} +/- 1 Std. Dev.'
                              )
@@ -141,7 +141,7 @@ with col1:
     
 with col2:
     st.plotly_chart(
-        plot_leadup_to_failure(failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State']),
+        plot_leadup_to_failure(failed_measure_df.filter_multiindex([('Endpoint', 'Endpoint or MA'), ('Derived', 'Raw or Derived')], untouched=['Organization', 'State', 'Year']),
                                non_failed_mean,
                                non_failed_std_dev,
                                yaxis_title=selected_measure, title=f'Lead Up to Failure vs Population: {selected_measure}')

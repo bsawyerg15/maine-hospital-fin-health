@@ -7,11 +7,11 @@ financials_schema = pa.DataFrameSchema(
         pa.Index(str, name="Measure"),
         pa.Index(str, name="Endpoint or MA"),
         pa.Index(str, name="Raw or Derived"),
+        pa.Index(int, name="Year"),
         ]),
     columns={
         'Year Failed': pa.Column(str, nullable=True),
-        # Regex matches any 4-digit year column
-        r"^\d{4}$": pa.Column(float, nullable=True, regex=True),
+        'Value': pa.Column(float, nullable=True),
     },
     strict=True,  # errors if unexpected columns
 )

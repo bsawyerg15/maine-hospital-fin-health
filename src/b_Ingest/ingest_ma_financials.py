@@ -44,10 +44,11 @@ def transpose_to_hospital_measure(df: pd.DataFrame, year: int) -> pd.DataFrame:
     df_long = df[id_cols + measure_cols].melt(
         id_vars=id_cols,
         var_name='Measure',
-        value_name=str(year),
+        value_name='Value',
     )
     df_long['Measure'] = df_long['Measure'].str.strip()
-    return df_long.set_index(['Organization', 'Measure'])
+    df_long['Year'] = year
+    return df_long.set_index(['Organization', 'Measure', 'Year'])
 
 
 def _extract_year(filename: str) -> int:
@@ -178,7 +179,6 @@ def create_combined_ma_financial_df(directory: str = MA_FINANCIALS_DIR) -> pd.Da
         df_dollars_parsed = parse_ma_numeric_values(df_transposed)
         dfs.append(df_dollars_parsed)
 
-    combined = pd.concat(dfs, axis=1)
-    combined = combined[sorted(combined.columns)]
+    combined = pd.concat(dfs, axis=0)
     combined = clean_ma_measure_names(combined)
     return combined

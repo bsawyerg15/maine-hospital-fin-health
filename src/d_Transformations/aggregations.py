@@ -5,28 +5,31 @@ from a_Config.global_constants import HOSPITAL_METADATA
 
 def create_mean_df(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Takes a dataframe where the columns are yearly data. Returns the mean for each year 
-    and adds a 'Total' column for the full-sample mean.
-    Input:
+    Takes a dataframe where Year is an index level. Returns the mean Value for each
+    (Measure, Year) combination and adds a 'Total' column for the full-sample mean.
+
+    Args:
         df: Adheres to financials_schema
     Returns:
-        pd.
+        DataFrame with Measure index and Year columns, plus a 'Total' column.
     """
-    df = df.select_dtypes(include='number')
-    mean_df = df.groupby(level='Measure').mean()
-    mean_df['Total'] = mean_df.stack().groupby(level='Measure').mean()
+    mean_df = df.groupby(level=['Measure', 'Year'])['Value'].mean().unstack('Year')
+    mean_df['Total'] = df.groupby(level='Measure')['Value'].mean()
     return mean_df
 
 
 def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
     """
-    Takes a dataframe where the columns are yearly data. Filters down only to hospitals that have failed
-    and returns dataframe in the form: Organization | Measure | ... T - 2 | T - 1 | T
-    """
+    Filters down only to hospitals that have failed and returns a tall dataframe with
+    a 'Relative Year' column indicating years relative to failure (0 = failure year,
+    -1 = one year prior, etc.).
 
+    Returns:
+        DataFrame in financials_schema format (Year in index) filtered to failed hospitals
+        within num_years of failure, with an added 'Relative Year' column.
+    """
     failed_hospitals_metadata = HOSPITAL_METADATA[~HOSPITAL_METADATA['Year Failed'].isna()][['Year Failed']]
 
-    year_cols = sorted([c for c in df.columns if str(c).isdigit()], key=lambda x: int(x))
     orgs_in_df = set(df.index.get_level_values('Organization'))
 
     result_dfs = []
@@ -35,31 +38,25 @@ def create_failed_hospital_df(df: pd.DataFrame, num_years=6) -> pd.DataFrame:
             continue
 
         year_failed = int(row['Year Failed'])
-        relevant_years = [y for y in year_cols if int(y) <= year_failed]
-        num_missing_years_after = year_failed - int(relevant_years[-1])
-        selected_years = relevant_years[-(num_years - num_missing_years_after):]
+        hospital_df = df.xs(hospital, level='Organization')
+        all_years = sorted(hospital_df.index.get_level_values('Year').unique().astype(int))
+
+        relevant_years = [y for y in all_years if y <= year_failed]
+        if not relevant_years:
+            continue
+
+        selected_years = relevant_years[-(num_years):]
 
         if not selected_years:
             continue
 
-        hospital_data = df.xs(hospital, level='Organization')[selected_years].copy()
-        for i in range(num_missing_years_after):
-            hospital_data[f'blank_{i}'] = np.nan
-
-        first_anticipated_year = int(year_failed) - num_years + 1
-        num_missing_years_before = int(selected_years[0]) - first_anticipated_year
-        for i in range(num_missing_years_before):
-            hospital_data.insert(0, f'before_{i}', np.nan)
-
-        n = num_years
-        hospital_data.columns = [
-            'T' if i == n - 1 else f'T - {n - 1 - i}'
-            for i in range(n)
-        ]
+        year_mask = hospital_df.index.get_level_values('Year').astype(int).isin(selected_years)
+        hospital_data = hospital_df[year_mask].copy()
         hospital_data.index = pd.MultiIndex.from_tuples(
             [(hospital,) + m for m in hospital_data.index],
-            names=['Organization', 'State', 'Measure', 'Endpoint or MA', 'Raw or Derived']
+            names=['Organization'] + hospital_df.index.names
         )
+        hospital_data['Relative Year'] = hospital_data.index.get_level_values('Year').astype(int) - year_failed
         result_dfs.append(hospital_data)
 
     if not result_dfs:

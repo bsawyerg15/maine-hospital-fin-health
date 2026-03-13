@@ -52,6 +52,7 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
         [
             df_to_agg.index.get_level_values('Organization'),
             new_measures,
+            df_to_agg.index.get_level_values('Year'),
         ],
         names=df_to_agg.index.names,
     )

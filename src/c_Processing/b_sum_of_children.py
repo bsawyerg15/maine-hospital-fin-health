@@ -35,26 +35,26 @@ def calculate_children_sums(df: pd.DataFrame) -> pd.DataFrame:
         how='inner'  # only keep rows that have a parent in the model
     )
 
-    # Group by Organization and Parent, sum across all children per year column
-    year_cols = df.columns[df.columns.str.match(r'^\d{4}$')]
-    group_cols = ['Organization', 'Parent']
+    # Group by Organization, Parent, and Year, sum across all children per group
+    group_cols = ['Organization', 'Parent', 'Year']
 
-    df_with_parent[year_cols] *= df_with_parent['Neg_Multiplier'].values[:, None]  # Apply negation if needed
+    df_with_parent['Value'] *= df_with_parent['Neg_Multiplier']  # Apply negation if needed
 
     df_with_parent_group = df_with_parent.groupby(group_cols)
 
-    # Non-NaN children present in data per group per year
-    actual_counts = df_with_parent_group[year_cols].count()
+    # Non-NaN children present in data per group
+    actual_counts = df_with_parent_group['Value'].count()
 
-    sums_df = df_with_parent_group[year_cols].sum(min_count=1)
+    sums_df = df_with_parent_group['Value'].sum(min_count=1)
 
     # Where the data doesn't have all model-defined children with values, return NaN
-    all_present = actual_counts.eq(expected_children_per_parent, axis=0)
+    expected = actual_counts.index.get_level_values('Parent').map(expected_children_per_parent)
+    all_present = actual_counts == expected
     sums_df = sums_df.where(all_present)
 
-    sums_df.index.names = ['Organization', 'Measure']  # Rename Parent to Measure for consistency
-    
-    return sums_df
+    sums_df.index.names = ['Organization', 'Measure', 'Year']  # Rename Parent to Measure for consistency
+
+    return sums_df.rename('Value').to_frame()
 
 
 def add_computed_parent_rows(df: pd.DataFrame) -> pd.DataFrame:

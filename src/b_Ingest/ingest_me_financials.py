@@ -171,8 +171,15 @@ def create_combined_me_financial_df(directory: str, file_list: list[str]) -> pd.
     for df in dfs[1:]:
         combined_df = combined_df.combine_first(df)
 
-    # Sort columns by year (numerical)
-    year_columns = sorted(combined_df.columns, key=lambda x: int(x))
-    combined_df = combined_df[year_columns]
-    
+    combined_df = (
+        combined_df
+        .stack(dropna=False)
+        .rename('Value')
+        .to_frame()
+    )
+    combined_df.index.names = ['Organization', 'Measure', 'Year']
+    combined_df.index = combined_df.index.set_levels(
+        combined_df.index.levels[2].astype(int), level='Year'
+    )
+
     return combined_df

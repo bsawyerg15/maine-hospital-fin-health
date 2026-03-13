@@ -58,11 +58,12 @@ def process_state_input_df(state, input_df=None) -> pd.DataFrame:
     processed_df = df_with_sum_of_children
 
     processed_df['State'] = state
-    processed_df = processed_df.set_index('State', append=True).reorder_levels(['Organization', 'State', 'Measure'])
+    processed_df = processed_df.set_index('State', append=True).reorder_levels(['Organization', 'State', 'Measure', 'Year'])
     processed_df['Endpoint or MA'] = 'Endpoint'
     processed_df['Raw or Derived'] = 'Raw'
     processed_df = processed_df.set_index(['Endpoint or MA', 'Raw or Derived'], append=True)
-    _year_failed = processed_df.index.droplevel(['Measure', 'Endpoint or MA', 'Raw or Derived']).map(HOSPITAL_METADATA['Year Failed'])
+    processed_df = processed_df.reorder_levels(['Organization', 'State', 'Measure', 'Endpoint or MA', 'Raw or Derived', 'Year'])
+    _year_failed = processed_df.index.droplevel(['Measure', 'Endpoint or MA', 'Raw or Derived', 'Year']).map(HOSPITAL_METADATA['Year Failed'])
     processed_df['Year Failed'] = _year_failed.map(lambda x: str(int(x)) if pd.notna(x) else None)
 
     financials_schema.validate(processed_df) # validate that the input df conforms to the expected shape
