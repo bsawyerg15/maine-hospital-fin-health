@@ -48,7 +48,7 @@ selected_states = st.sidebar.multiselect(
 
 underived_df = create_full_underived_df(selected_states)
 
-all_transformations_df = run_transformation_pipeline(underived_df)
+all_transformations_df = run_transformation_pipeline(underived_df, num_years_ma)
 
 failed_df = create_failed_hospital_df(all_transformations_df, num_years_ma + 1)
 

@@ -4,7 +4,7 @@ from d_Transformations.derived_ratios import derive_ratios
 from d_Transformations.moving_average import take_moving_average
 
 
-def run_transformation_pipeline(underived_df: pd.DataFrame, ma_years: int = 3) -> pd.DataFrame:
+def run_transformation_pipeline(underived_df: pd.DataFrame, ma_years) -> pd.DataFrame:
     """
     Runs the full transformation pipeline on an underived financials dataframe.
 

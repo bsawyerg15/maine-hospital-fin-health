@@ -1,38 +1,33 @@
 import plotly.graph_objects as go
 
 
-def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None, row_label_col=None):
+def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None):
     """
-    Plot each row of a dataframe as a time series, where columns represent time points.
+    Plot each hospital as a time series of Value vs Relative Year.
 
     Parameters
     ----------
     df : pd.DataFrame
-        Rows are entities (e.g. hospitals), columns are time points.
-    title : str, optional
-        Chart title.
-    yaxis_title : str, optional
-        Y-axis label.
-    row_label_col : str, optional
-        Column to use as the trace name for each row. If None, uses the index.
+        Tall DataFrame with (Organization, State, Year) MultiIndex and
+        'Value' and 'Relative Year' columns. One row per (hospital, year).
     mean : float, optional
         Constant mean value to draw as a horizontal reference line.
     std : float, optional
         Constant standard deviation. Shades a band of [mean-std, mean+std] when
         provided alongside mean.
+    title : str, optional
+        Chart title.
+    yaxis_title : str, optional
+        Y-axis label.
 
     Returns
     -------
     plotly.graph_objects.Figure
     """
-    if row_label_col is not None:
-        plot_df = df.drop(columns=[row_label_col])
-        labels = df[row_label_col].astype(str)
-    else:
-        plot_df = df
-        labels = df.index.get_level_values('Organization')
+    def rel_year_label(n):
+        return 'T' if n == 0 else f'T - {abs(n)}'
 
-    x = list(plot_df.columns)
+    x = [rel_year_label(n) for n in sorted(df['Relative Year'].unique())]
 
     fig = go.Figure()
 
@@ -58,12 +53,13 @@ def plot_leadup_to_failure(df, mean, std, title=None, yaxis_title=None, row_labe
             name="Operational Mean",
         ))
 
-    for label, (_, row) in zip(labels, plot_df.iterrows()):
+    for org in df.index.get_level_values('Organization').unique():
+        org_data = df.xs(org, level='Organization').sort_values('Relative Year')
         fig.add_trace(go.Scatter(
-            x=x,
-            y=row.values,
+            x=org_data['Relative Year'].map(rel_year_label),
+            y=org_data['Value'],
             mode="lines+markers",
-            name=str(label),
+            name=str(org),
             line=dict(color='lightgray'),
             marker=dict(color='lightgray')
         ))
