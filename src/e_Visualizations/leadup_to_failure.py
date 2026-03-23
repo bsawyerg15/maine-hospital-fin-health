@@ -1,8 +1,9 @@
 import numpy as np
 import plotly.graph_objects as go
+from a_Config.global_constants import get_measure_tickformat
 
 
-def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None):
+def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=None):
     """
     Plot each failed hospital as a time series of Value vs Relative Year.
 
@@ -64,14 +65,14 @@ def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None):
 
     fig.update_layout(
         title=title,
-        yaxis_title=yaxis_title,
+        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure) if measure else None),
         xaxis_title=None,
     )
 
     return fig
 
 
-def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None):
+def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=None):
     """
     Plot each failed hospital's cumulative percent change, re-indexed to 0 at
     the first relative year, with a geometric-mean reference line and a
@@ -142,7 +143,7 @@ def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None):
 
     fig.update_layout(
         title=title,
-        yaxis_title=yaxis_title,
+        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure) if measure else None),
         xaxis_title=None,
     )
 

@@ -41,3 +41,16 @@ DERIVE_RATIOS['Multiplier'] = DERIVE_RATIOS['Multiplier'].fillna(1.0).astype(flo
 HOSPITAL_METADATA: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_metadata.csv')
 ).set_index(['Organization', 'State'])
+
+
+def get_measure_tickformat(measure: str) -> str:
+    """Return Plotly tickformat string for a measure based on fin_statement_model Format column.
+
+    'Percent' measures (margins, returns) → '.1%'  (e.g. 0.05 → '5.0%')
+    'Float' measures (ratios, days)        → '.1f'
+    Unknown measures default to '.1f'.
+    """
+    if measure in FINANCIAL_STATEMENT_MODEL.index:
+        fmt = FINANCIAL_STATEMENT_MODEL.loc[measure, 'Format']
+        return '.1%' if fmt == 'Percent' else '.1f'
+    return '.1f'

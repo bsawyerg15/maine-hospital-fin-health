@@ -1,5 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
+from a_Config.global_constants import get_measure_tickformat
 
 
 def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=20, title=None,
@@ -70,7 +71,7 @@ def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=
 
     fig.update_layout(
         title=title or f'Distribution of {measure_name}',
-        xaxis=dict(title=measure_name),
+        xaxis=dict(title=measure_name, tickformat=get_measure_tickformat(measure_name)),
         yaxis=dict(title="Operational count", title_font=dict(color="steelblue")),
         yaxis2=dict(
             title="Failed count",

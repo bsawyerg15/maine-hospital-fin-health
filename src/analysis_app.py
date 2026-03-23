@@ -117,6 +117,7 @@ with col1:
             ],
             ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
             title=f'Mean {selected_measure} +/- 1 Std. Dev.',
+            measure=selected_measure,
         )
     )
 
@@ -129,6 +130,7 @@ with col2:
                 non_failed_std_dev,
                 yaxis_title=selected_measure,
                 title=f'Lead Up to Failure vs Population: {selected_measure}',
+                measure=selected_measure,
             )
         )
     else:
@@ -137,7 +139,8 @@ with col2:
                 failed_ds['cum_pct_change'].sel(measure=selected_measure),
                 non_failed_mean,
                 non_failed_std_dev,
-                yaxis_title=selected_measure,
+                yaxis_title=f'{selected_measure}\n(Cum. % Change)',
                 title=f'Lead Up to Failure vs Population: {selected_measure}',
+                measure=selected_measure,
             )
         )
