@@ -2,7 +2,8 @@ import numpy as np
 import plotly.graph_objects as go
 
 
-def plot_failed_histogram(ds, failed_ds, measure_name, ma_years=None, bins=20, title=None):
+def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=20, title=None,
+                          clip_lower=None, clip_upper=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -21,8 +22,6 @@ def plot_failed_histogram(ds, failed_ds, measure_name, ma_years=None, bins=20, t
     title : str, optional
         Chart title.
     """
-    var = 'ma' if ma_years else 'endpoint'
-
     non_failed_values = (
         ds[var].sel(measure=measure_name)
         .where(ds['year_failed'].isnull())
@@ -38,6 +37,12 @@ def plot_failed_histogram(ds, failed_ds, measure_name, ma_years=None, bins=20, t
         failed_values = failed_values[~np.isnan(failed_values)]
     else:
         failed_values = np.array([])
+
+    if clip_lower is not None or clip_upper is not None:
+        lo = clip_lower if clip_lower is not None else -np.inf
+        hi = clip_upper if clip_upper is not None else np.inf
+        non_failed_values = np.clip(non_failed_values, lo, hi)
+        failed_values = np.clip(failed_values, lo, hi)
 
     all_values = np.concatenate([non_failed_values, failed_values])
     bin_edges = np.histogram_bin_edges(all_values, bins=bins)

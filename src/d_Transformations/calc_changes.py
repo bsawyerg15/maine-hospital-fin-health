@@ -2,27 +2,42 @@ import numpy as np
 import xarray as xr
 
 
-def calc_period_over_period_change(ds: xr.Dataset) -> xr.Dataset:
+def calc_period_over_period_change(ds: xr.Dataset, var: str, ma_years: int) -> xr.Dataset:
     """
-    Computes period-over-period percent change and log change for every
-    variable in the Dataset along the 'year' dimension.
+    Computes period-over-period changes for a single variable.
 
-    For each variable v:
-        pct_change_<v>  = (v - v.shift(year=1)) / v.shift(year=1)
-        ln_change_<v>   = ln(v / v.shift(year=1))
-
-    The first year will be NaN for both (no prior period).
+    Returns a Dataset with:
+        measure        = raw values of var
+        ln_measure     = log(measure)
+        ln_pct_change  = diff of ln_measure (ln(t) - ln(t-1))
+        pct_change     = exp(ln_pct_change)
+        ma_pct_change  = exp(rolling mean of ln_pct_change over ma_years)
+        cum_pct_change = exp(cumulative sum of ln_pct_change)
 
     Args:
-        ds: Dataset with a 'year' dimension.
+        ds:       Dataset with a 'year' dimension containing var.
+        var:      Name of the data variable to process.
+        ma_years: Window size for the moving average of ln_pct_change.
 
     Returns:
-        Dataset containing pct_change_* and ln_change_* variables.
+        Dataset with the six variables above.
     """
-    result = {}
-    for var in ds.data_vars:
-        da = ds[var]
-        prior = da.shift(year=1)
-        result[f'pct_change_{var}'] = (da - prior) / prior
-        result[f'ln_change_{var}'] = np.log(da / prior)
-    return xr.Dataset(result, coords=ds.coords)
+    da = ds[var]
+    ln_measure = np.log(da)
+    ln_pct_change = ln_measure - ln_measure.shift(year=1)
+
+    ma_ln = ln_pct_change.rolling(year=ma_years, min_periods=1).mean()
+
+    cum_ln = ln_pct_change.cumsum(dim='year', skipna=True)
+
+    return xr.Dataset(
+        {
+            'measure': da,
+            'ln_measure': ln_measure,
+            'ln_pct_change': ln_pct_change,
+            'pct_change': np.exp(ln_pct_change),
+            'ma_pct_change': np.exp(ma_ln),
+            'cum_pct_change': np.exp(cum_ln),
+        },
+        coords=ds.coords,
+    )
