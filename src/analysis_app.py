@@ -7,7 +7,7 @@ from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
 from d_Transformations.change_pipeline import run_change_pipeline, calc_period_over_period_change
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
-from e_Visualizations.leadup_to_failure import plot_leadup_to_failure
+from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
 
 
 #######################################################################################################
@@ -121,12 +121,23 @@ with col1:
     )
 
 with col2:
-    st.plotly_chart(
-        plot_leadup_to_failure(
-            failed_ds[last_col].sel(measure=selected_measure),
-            non_failed_mean,
-            non_failed_std_dev,
-            yaxis_title=selected_measure,
-            title=f'Lead Up to Failure vs Population: {selected_measure}',
+    if use_ratios:
+        st.plotly_chart(
+            plot_leadup_to_failure(
+                failed_ds[last_col].sel(measure=selected_measure),
+                non_failed_mean,
+                non_failed_std_dev,
+                yaxis_title=selected_measure,
+                title=f'Lead Up to Failure vs Population: {selected_measure}',
+            )
         )
-    )
+    else:
+        st.plotly_chart(
+            plot_cum_leadup_to_failure(
+                failed_ds['cum_pct_change'].sel(measure=selected_measure),
+                non_failed_mean,
+                non_failed_std_dev,
+                yaxis_title=selected_measure,
+                title=f'Lead Up to Failure vs Population: {selected_measure}',
+            )
+        )
