@@ -1,6 +1,7 @@
 import streamlit as st
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS
 from a_Config.enumerations import ChangeType
+from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
@@ -14,30 +15,53 @@ from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_
 # User Inputs
 #######################################################################################################
 
-selected_date = st.sidebar.selectbox(
-    'Analysis Period End',
-    options=['Total'] + sorted([str(i) for i in range(2000, 2025)], reverse=True),
-    index=0
-)
+# st.sidebar.markdown("Analysis Parameters")
 
-num_years_ma = st.sidebar.number_input(
-    'Number of Years Before Failing',
-    1, 10, 5
-)
+ratios_or_changes = st.sidebar.radio('Measure Source', ['Ratios', 'Income Statement (Changes)', 'Balance Sheet (Changes)'])
+use_ratios = ratios_or_changes == 'Ratios'
+
+derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
+income_statement_items = get_fin_statement_descendants('Total Surplus/Deficit')
+balance_sheet_items = get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity')
+match ratios_or_changes: 
+    case 'Ratios': 
+        measure_options = derived_ratios 
+    case 'Income Statement (Changes)': 
+        measure_options = income_statement_items
+    case 'Balance Sheet (Changes)': 
+        measure_options = balance_sheet_items
+
+selected_measure = st.sidebar.selectbox('Measure', measure_options, 2)
 
 selected_states = st.sidebar.multiselect(
     'States', ['ME', 'MA'], 
     default=['ME']
 )
 
-ratios_or_changes = st.sidebar.radio('', ['Ratios', 'Line Items'])
-use_ratios = ratios_or_changes == 'Ratios'
+use_full_window = st.sidebar.checkbox('Use Full Window', value=True)
+
+if not use_full_window:
+    year_begin = st.sidebar.number_input('Begin Year', min_value=2000, max_value=2025, value=2000, step=1)
+    year_end = st.sidebar.number_input('End Year', min_value=2000, max_value=2025, value=2025, step=1)
+    if year_begin >= year_end:
+        st.sidebar.error('Begin year must be before end year.')
+        st.stop()
+
+num_years_ma = st.sidebar.number_input(
+    'Lookback Years',
+    1, 10, 5
+)
 
 #######################################################################################################
 # Data
 #######################################################################################################
 
 underived_df = create_full_underived_df(selected_states)
+
+if not use_full_window:
+    year_index = underived_df.index.get_level_values('Year').astype(int)
+    underived_df = underived_df[(year_index >= year_begin) & (year_index <= year_end)]
+
 underived_ds = to_dataset(underived_df)
 
 derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
@@ -76,12 +100,7 @@ st.title("What are the financial characteristics of failed hospitals?")
 margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
-derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
-reported_measures = change_ds.coords['measure'].values.tolist()
-
 with side_col:
-    measure_options = derived_ratios if ratios_or_changes == 'Ratios' else LINE_ITEMS
-    selected_measure = st.selectbox('Measure', measure_options, 2)
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
 non_failed_mean = float(aggregate_ds['mean'].sel(population='non_failed', measure=selected_measure, year='Total'))
