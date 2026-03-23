@@ -1,4 +1,3 @@
-import numpy as np
 import plotly.graph_objects as go
 
 
@@ -8,8 +7,8 @@ def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None):
 
     Parameters
     ----------
-    series_list : list of pd.Series or array-like
-        Each element is a series of values. Mean and std are computed per element.
+    series_list : list of (mean, std) tuples
+        Pre-computed mean and standard deviation for each bar.
     labels : list of str, optional
         Bar labels. Defaults to "Series 0", "Series 1", etc.
     title : str, optional
@@ -24,17 +23,8 @@ def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None):
     if labels is None:
         labels = [f"Series {i}" for i in range(len(series_list))]
 
-    means = []
-    stds = []
-    for s in series_list:
-        if isinstance(s, tuple):
-            means.append(s[0])
-            stds.append(s[1])
-        else:
-            values = np.asarray(s, dtype=float)
-            values = values[~np.isnan(values)]
-            means.append(np.mean(values))
-            stds.append(np.std(values, ddof=1) if len(values) > 1 else 0.0)
+    means = [s[0] for s in series_list]
+    stds = [s[1] for s in series_list]
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(

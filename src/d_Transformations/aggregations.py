@@ -4,50 +4,63 @@ import xarray as xr
 from a_Config.global_constants import HOSPITAL_METADATA
 from a_Config.enumerations import ChangeType
 
-def calc_aggregates(ds: xr.Dataset, var: str = 'endpoint', is_geometric: bool = False) -> xr.Dataset:
+def calc_aggregates(ds: xr.Dataset, var: str, change_type: ChangeType = ChangeType.ARITHMETIC, year_dim: str = 'year') -> xr.Dataset:
     """
-    Returns the mean and standard deviation of a variable, collapsed across
-    all organizations and years into a single pool of points.
+    Returns the mean and standard deviation of a variable, broken out by year
+    plus a 'Total' entry pooling all years.
 
     Args:
         ds: Financials Dataset.
         var: Which variable to aggregate.
-        is_geometric: If True, compute geometric mean and geometric standard
-            deviation via log(1+x) transform, then exp(result)-1 to return
-            to the original scale.
+        change_type: If GEOMETRIC, compute via log(1+x) transform.
+        year_dim: Name of the time dimension to break out by. Use 'year' for
+            the full dataset and 'relative_year' for failed-hospital datasets.
 
     Returns:
-        Dataset with 'mean' and 'std' variables, each with dim (measure,).
+        Dataset with 'mean' and 'std' variables, each with dims (measure, year_dim).
+        The year_dim coordinate contains all values present in ds plus the string
+        'Total' (all years pooled).
     """
-    stacked = ds[var].stack(obs=('organization', 'state', 'year'))
+    is_geometric = change_type == ChangeType.GEOMETRIC
+    data = ds[var]
     if is_geometric:
-        stacked = np.log1p(stacked)
-    mean = stacked.mean(dim='obs')
-    std = stacked.std(dim='obs')
+        data = np.log1p(data)
+
+    obs_dims = [d for d in data.dims if d not in ('measure', year_dim)]
+    per_year = data.stack(obs=obs_dims)
+    per_year_mean = per_year.mean(dim='obs')
+    per_year_std = per_year.std(dim='obs')
+
+    total = data.stack(obs=[*obs_dims, year_dim])
+    total_mean = total.mean(dim='obs').expand_dims({year_dim: ['Total']})
+    total_std = total.std(dim='obs').expand_dims({year_dim: ['Total']})
+
     if is_geometric:
-        mean, std = np.expm1(mean), np.expm1(std)
-    return xr.Dataset({'mean': mean, 'std': std})
+        per_year_mean, per_year_std = np.expm1(per_year_mean), np.expm1(per_year_std)
+        total_mean, total_std = np.expm1(total_mean), np.expm1(total_std)
+
+    per_year_ds = xr.Dataset({'mean': per_year_mean, 'std': per_year_std})
+    total_ds = xr.Dataset({'mean': total_mean, 'std': total_std})
+    return xr.concat([per_year_ds, total_ds], dim=year_dim)
 
 
-def calc_population_aggregates(ds: xr.Dataset, var: str = 'endpoint', change_type: ChangeType = ChangeType.ARITHMETIC) -> xr.Dataset:
+def calc_population_aggregates(ds: xr.Dataset, var: str, change_type: ChangeType = ChangeType.ARITHMETIC) -> xr.Dataset:
     """
     Runs calc_aggregates for three populations and returns them combined along
     a new 'population' dimension with values 'total', 'failed', 'non_failed'.
 
     Returns:
-        Dataset with 'mean' and 'std' variables, each with dims (population, measure).
+        Dataset with 'mean' and 'std' variables, each with dims (population, measure, year).
     """
     populations = {
         'total': ds,
         'failed': ds.where(ds['year_failed'].notnull()),
         'non_failed': filter_to_non_failed(ds),
     }
-    is_geometric = change_type == ChangeType.GEOMETRIC
     return xr.concat(
-        [calc_aggregates(pop_ds, var, is_geometric) for pop_ds in populations.values()],
+        [calc_aggregates(pop_ds, var, change_type) for pop_ds in populations.values()],
         dim=pd.Index(list(populations.keys()), name='population'),
     )
-
 
 
 def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
@@ -60,10 +73,9 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
         num_years: How many years before (and including) failure to keep.
 
     Returns:
-        Dataset with dims (organization, measure, relative_year). Missing
-        relative_year slots for hospitals with fewer available years are
-        filled with NaN via outer join on concat. State is carried as a
-        non-dimension coordinate on the organization dimension.
+        Dataset with dims (organization, state, measure, relative_year), matching
+        the structure of the full dataset. Missing relative_year slots for hospitals
+        with fewer available years are filled with NaN via outer join on concat.
     """
     failed_metadata = HOSPITAL_METADATA[HOSPITAL_METADATA['Year Failed'].notna()]
     all_orgs = set(ds.coords['organization'].values)
@@ -71,8 +83,6 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
     all_years = sorted(int(y) for y in ds.coords['year'].values)
 
     slices = []
-    orgs = []
-    states_out = []
 
     for (hospital, state), row in failed_metadata.iterrows():
         if hospital not in all_orgs or state not in all_states:
@@ -88,25 +98,18 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
         h_ds = xr.Dataset({
             var: (
                 ds[var]
-                .sel(organization=hospital, state=state, year=selected)
+                .sel(organization=[hospital], state=[state], year=selected)
                 .assign_coords(year=relative)
                 .rename({'year': 'relative_year'})
             )
             for var in ds.data_vars
         })
         slices.append(h_ds)
-        orgs.append(hospital)
-        states_out.append(state)
 
     if not slices:
         return xr.Dataset()
 
-    combined = xr.concat(
-        slices,
-        dim=pd.Index(orgs, name='organization'),
-        join='outer',
-    )
-    return combined.assign_coords(state=('organization', states_out))
+    return xr.concat(slices, dim='organization', join='outer')
 
 
 def filter_to_non_failed(ds: xr.Dataset) -> xr.Dataset:
