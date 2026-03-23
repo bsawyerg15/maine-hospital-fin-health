@@ -3,7 +3,7 @@ from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.aggregations import create_failed_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
-from d_Transformations.change_pipeline import run_change_pipeline
+from d_Transformations.change_pipeline import run_change_pipeline, calc_period_over_period_change
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure
@@ -42,13 +42,13 @@ underived_ds = to_dataset(underived_df)
 derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
 # failed_ratio_ds = create_failed_dataset(derived_ratio_ds, num_years_ma + 1)
 
-change_ds = run_change_pipeline(underived_ds, num_years_ma)
+change_ds = calc_period_over_period_change(underived_ds, 'value', num_years_ma)
 # failed_change_ds = create_failed_dataset(change_ds, num_years_ma + 1)
 
 active_ds = derived_ratio_ds if use_ratios else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
-last_col = 'endpoint'
-ma_col = 'ma'
+last_col = 'endpoint' if use_ratios else 'pct_change'
+ma_col = 'ma' if use_ratios else 'ma_pct_change'
 
 #######################################################################################################
 # Viz
