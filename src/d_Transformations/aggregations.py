@@ -1,20 +1,53 @@
+import numpy as np
 import pandas as pd
 import xarray as xr
 from a_Config.global_constants import HOSPITAL_METADATA
+from a_Config.enumerations import ChangeType
 
-
-def create_mean_df(ds: xr.Dataset, var: str = 'endpoint') -> xr.DataArray:
+def calc_aggregates(ds: xr.Dataset, var: str = 'endpoint', is_geometric: bool = False) -> xr.Dataset:
     """
-    Returns the mean Value across organizations for each (measure, year).
+    Returns the mean and standard deviation of a variable, collapsed across
+    all organizations and years into a single pool of points.
 
     Args:
-        ds: Financials Dataset with 'endpoint' and 'ma' variables.
-        var: Which variable to average ('endpoint' or 'ma').
+        ds: Financials Dataset.
+        var: Which variable to aggregate.
+        is_geometric: If True, compute geometric mean and geometric standard
+            deviation via log(1+x) transform, then exp(result)-1 to return
+            to the original scale.
 
     Returns:
-        DataArray with dims (state, measure, year).
+        Dataset with 'mean' and 'std' variables, each with dim (measure,).
     """
-    return ds[var].mean(dim='organization')
+    stacked = ds[var].stack(obs=('organization', 'state', 'year'))
+    if is_geometric:
+        stacked = np.log1p(stacked)
+    mean = stacked.mean(dim='obs')
+    std = stacked.std(dim='obs')
+    if is_geometric:
+        mean, std = np.expm1(mean), np.expm1(std)
+    return xr.Dataset({'mean': mean, 'std': std})
+
+
+def calc_population_aggregates(ds: xr.Dataset, var: str = 'endpoint', change_type: ChangeType = ChangeType.ARITHMETIC) -> xr.Dataset:
+    """
+    Runs calc_aggregates for three populations and returns them combined along
+    a new 'population' dimension with values 'total', 'failed', 'non_failed'.
+
+    Returns:
+        Dataset with 'mean' and 'std' variables, each with dims (population, measure).
+    """
+    populations = {
+        'total': ds,
+        'failed': ds.where(ds['year_failed'].notnull()),
+        'non_failed': filter_to_non_failed(ds),
+    }
+    is_geometric = change_type == ChangeType.GEOMETRIC
+    return xr.concat(
+        [calc_aggregates(pop_ds, var, is_geometric) for pop_ds in populations.values()],
+        dim=pd.Index(list(populations.keys()), name='population'),
+    )
+
 
 
 def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:

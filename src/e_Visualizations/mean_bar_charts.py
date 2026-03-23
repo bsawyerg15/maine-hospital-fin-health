@@ -27,10 +27,14 @@ def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None):
     means = []
     stds = []
     for s in series_list:
-        values = np.asarray(s, dtype=float)
-        values = values[~np.isnan(values)]
-        means.append(np.mean(values))
-        stds.append(np.std(values, ddof=1) if len(values) > 1 else 0.0)
+        if isinstance(s, tuple):
+            means.append(s[0])
+            stds.append(s[1])
+        else:
+            values = np.asarray(s, dtype=float)
+            values = values[~np.isnan(values)]
+            means.append(np.mean(values))
+            stds.append(np.std(values, ddof=1) if len(values) > 1 else 0.0)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(

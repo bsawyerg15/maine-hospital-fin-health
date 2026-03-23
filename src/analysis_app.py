@@ -1,7 +1,8 @@
 import streamlit as st
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS
+from a_Config.enumerations import ChangeType
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
-from d_Transformations.aggregations import create_failed_dataset
+from d_Transformations.aggregations import create_failed_dataset, calc_population_aggregates
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
 from d_Transformations.change_pipeline import run_change_pipeline, calc_period_over_period_change
 from e_Visualizations.failed_histogram import plot_failed_histogram
@@ -49,6 +50,10 @@ active_ds = derived_ratio_ds if use_ratios else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
 last_col = 'endpoint' if use_ratios else 'pct_change'
 ma_col = 'ma' if use_ratios else 'ma_pct_change'
+change_type = ChangeType.ARITHMETIC if use_ratios else ChangeType.GEOMETRIC
+
+aggregate_ds = calc_population_aggregates(active_ds, var=last_col, change_type=change_type)
+ma_aggregate_ds = calc_population_aggregates(active_ds, var=ma_col, change_type=change_type)
 
 #######################################################################################################
 # Viz
@@ -77,9 +82,8 @@ with side_col:
     selected_measure = st.selectbox('Measure', measure_options, 2)
     is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
 
-non_failed_da = active_ds[last_col].sel(measure=selected_measure).where(active_ds['year_failed'].isnull())
-non_failed_mean = float(non_failed_da.mean()) # if using the changes, should be in non-linear space
-non_failed_std_dev = float(non_failed_da.std())
+non_failed_mean = float(aggregate_ds['mean'].sel(population='non_failed', measure=selected_measure))
+non_failed_std_dev = float(aggregate_ds['std'].sel(population='non_failed', measure=selected_measure))
 
 with col:
     lb, ub = (None, None) if use_ratios else (-1, 3)
@@ -101,7 +105,7 @@ with col1:
     st.plotly_chart(
         plot_mean_bar_chart(
             [
-                non_failed_da.values.flatten(),
+                (non_failed_mean, non_failed_std_dev),
                 failed_ds[last_col].sel(measure=selected_measure, relative_year=0).values.flatten(),
                 failed_ds[ma_col].sel(measure=selected_measure, relative_year=-1).values.flatten(),
             ],
