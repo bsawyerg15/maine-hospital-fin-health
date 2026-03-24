@@ -26,7 +26,7 @@ def calc_period_over_period_change(ds: xr.Dataset, var: str, ma_years: int) -> x
     ln_value = np.log(da)
     ln_pct_change = ln_value - ln_value.shift(year=1)
 
-    ma_ln = ln_pct_change.rolling(year=ma_years, min_periods=1).mean()
+    ma_ln = ln_pct_change.rolling(year=ma_years, min_periods=ma_years).mean()
 
     cum_ln = ln_pct_change.cumsum(dim='year', skipna=True)
 

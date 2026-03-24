@@ -46,6 +46,11 @@ def calc_r2_table(
         Columns: ``Measure`` (or ``Measure (lag Ny)``), ``Last R²``, ``MA R²``,
         sorted descending by ``Last R²``.
     """
+    available = set(interface_ds.coords['measure'].values)
+    if selected_measure not in available:
+        return pd.DataFrame(columns=['Measure', 'Last R²', 'MA R²'])
+    measures = [m for m in measures if m in available]
+
     last_x_da = interface_ds['last'].sel(measure=selected_measure)
     ma_x_da = interface_ds['ma'].sel(measure=selected_measure)
     if y_lag != 0:

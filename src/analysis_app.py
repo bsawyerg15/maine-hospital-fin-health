@@ -83,8 +83,8 @@ selected_states = st.sidebar.multiselect(
 use_full_window = st.sidebar.checkbox('Use Full Window', value=True)
 
 if not use_full_window:
-    year_begin = st.sidebar.number_input('Begin Year', min_value=2000, max_value=2025, value=2000, step=1)
-    year_end = st.sidebar.number_input('End Year', min_value=2000, max_value=2025, value=2025, step=1)
+    year_begin = 2000#st.sidebar.number_input('Begin Year', min_value=2000, max_value=2025, value=2000, step=1)
+    year_end = 2025#st.sidebar.number_input('End Year', min_value=2000, max_value=2025, value=2025, step=1)
     if year_begin >= year_end:
         st.sidebar.error('Begin year must be before end year.')
         st.stop()
