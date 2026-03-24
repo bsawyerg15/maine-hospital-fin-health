@@ -12,6 +12,7 @@ from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
 from e_Visualizations.measure_scatter import plot_measure_scatter
 from e_Visualizations.r2_table import calc_r2_table
+from e_Visualizations.measure_comparison_table import calc_measure_comparison_table
 
 
 st.set_page_config(
@@ -198,7 +199,8 @@ with col2:
             )
         )
 
-# TODO: table that shows all measures, MA & Endpoint | opeational mean, failed mean, diff
+st.subheader("All Measures: Operational vs. Failed")
+st.dataframe(calc_measure_comparison_table(aggregate_ds, ma_aggregate_ds, failed_aggregate_ds, failed_ma_aggregate_ds, measure_options))
 
 #######################################################################################################
 # Comparison to Other Measures
