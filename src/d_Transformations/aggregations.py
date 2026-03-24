@@ -89,7 +89,8 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
             continue
 
         year_failed = int(row['Year Failed'])
-        selected = [y for y in all_years if y <= year_failed][-num_years:]
+        target_years = set(range(year_failed - num_years + 1, year_failed + 1))
+        selected = sorted(y for y in all_years if y in target_years)
         if not selected:
             continue
 

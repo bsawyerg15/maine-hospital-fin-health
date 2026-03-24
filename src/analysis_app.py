@@ -11,13 +11,52 @@ from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
 from e_Visualizations.measure_scatter import plot_measure_scatter
+from e_Visualizations.r2_table import calc_r2_table
+
+
+st.set_page_config(
+    page_title="Hospital Cross-Sectional Analysis",
+    page_icon="🏥",
+    layout="wide"
+)
+
+
+#######################################################################################################
+# Cached pipeline helpers
+#######################################################################################################
+
+@st.cache_data
+def _load_underived(states: tuple):
+    return create_full_underived_df(list(states))
+
+
+@st.cache_data
+def _build_datasets(states: tuple, num_years_ma: int, year_begin=None, year_end=None):
+    df = _load_underived(states)
+    if year_begin is not None and year_end is not None:
+        year_index = df.index.get_level_values('Year').astype(int)
+        df = df[(year_index >= year_begin) & (year_index <= year_end)]
+    underived_ds = to_dataset(df)
+    derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
+    dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
+    change_ds = calc_period_over_period_change(dollar_level_ds, 'value', num_years_ma)
+    interface_ds = xr.Dataset({
+        'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
+        'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
+        'year_failed': derived_ratio_ds['year_failed'],
+    })
+    return derived_ratio_ds, change_ds, interface_ds
+
+
+@st.cache_data
+def _cached_r2_table(states: tuple, num_years_ma: int, year_begin, year_end, x_measure: str, measures: tuple, y_lag: int):
+    _, _, interface_ds = _build_datasets(states, num_years_ma, year_begin, year_end)
+    return calc_r2_table(interface_ds, x_measure, list(measures), y_lag=y_lag)
 
 
 #######################################################################################################
 # User Inputs
 #######################################################################################################
-
-# st.sidebar.markdown("Analysis Parameters")
 
 ratios_or_changes = st.sidebar.radio('Measure Source', ['Ratios', 'Income Statement (Changes)', 'Balance Sheet (Changes)'])
 use_ratios = ratios_or_changes == 'Ratios'
@@ -25,21 +64,19 @@ use_ratios = ratios_or_changes == 'Ratios'
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
 income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
 balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
-match ratios_or_changes: 
-    case 'Ratios': 
-        measure_options = derived_ratios 
-    case 'Income Statement (Changes)': 
+match ratios_or_changes:
+    case 'Ratios':
+        measure_options = derived_ratios
+    case 'Income Statement (Changes)':
         measure_options = income_statement_items
-    case 'Balance Sheet (Changes)': 
+    case 'Balance Sheet (Changes)':
         measure_options = balance_sheet_items
 all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 2)
 
-
-
 selected_states = st.sidebar.multiselect(
-    'States', ['ME', 'MA'], 
+    'States', ['ME', 'MA'],
     default=['ME']
 )
 
@@ -51,6 +88,9 @@ if not use_full_window:
     if year_begin >= year_end:
         st.sidebar.error('Begin year must be before end year.')
         st.stop()
+else:
+    year_begin = None
+    year_end = None
 
 num_years_ma = st.sidebar.number_input(
     'Lookback Years',
@@ -61,26 +101,8 @@ num_years_ma = st.sidebar.number_input(
 # Data
 #######################################################################################################
 
-underived_df = create_full_underived_df(selected_states)
-
-if not use_full_window:
-    year_index = underived_df.index.get_level_values('Year').astype(int)
-    underived_df = underived_df[(year_index >= year_begin) & (year_index <= year_end)]
-
-underived_ds = to_dataset(underived_df)
-
-derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
-# failed_ratio_ds = create_failed_dataset(derived_ratio_ds, num_years_ma + 1)
-
-dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
-change_ds = calc_period_over_period_change(dollar_level_ds, 'value', num_years_ma)
-# failed_change_ds = create_failed_dataset(change_ds, num_years_ma + 1)
-
-interface_ds = xr.Dataset({
-    'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
-    'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
-    'year_failed': derived_ratio_ds['year_failed'],
-})
+states_key = tuple(selected_states)
+derived_ratio_ds, change_ds, interface_ds = _build_datasets(states_key, num_years_ma, year_begin, year_end)
 
 active_ds = derived_ratio_ds if use_ratios else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
@@ -96,12 +118,6 @@ failed_ma_aggregate_ds = calc_aggregates(failed_ds, ma_col, change_type, year_di
 #######################################################################################################
 # Viz
 #######################################################################################################
-
-st.set_page_config(
-    page_title="Hospital Cross-Sectional Analysis",
-    page_icon="🏥",
-    layout="wide"
-)
 
 st.title("What are the financial characteristics of failed hospitals?")
 
@@ -198,12 +214,29 @@ _, col, side_col = st.columns([margin, 1, margin])
 with side_col:
     scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
     endpoint_or_ma = st.radio('', ['Endpoint', 'MA'])
+    y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
 with col:
     scatter_da = interface_ds['last'] if endpoint_or_ma == 'Endpoint' else interface_ds['ma']
+    y_da = scatter_da.sel(measure=scatter_measure_y)
+    if y_lag != 0:
+        y_da = y_da.shift(year=y_lag)
     st.plotly_chart(plot_measure_scatter(
         scatter_da.sel(measure=selected_measure),
-        scatter_da.sel(measure=scatter_measure_y),
+        y_da,
         interface_ds['year_failed'],
+        y_lag=y_lag,
     ))
 
-# TODO: table showing R^2 between measures
+    def _styled(df):
+        return (df.style
+                .background_gradient(cmap='Blues', subset=['Last R²', 'MA R²'], vmin=0, vmax=1)
+                .format({'Last R²': '{:.2f}', 'MA R²': '{:.2f}'}))
+
+    with st.expander("R² vs Ratios", expanded=True):
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(derived_ratios), y_lag)), hide_index=True, use_container_width=True)
+
+    with st.expander("R² vs Change in Income Statement Items", expanded=False):
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(income_statement_items), y_lag)), hide_index=True, use_container_width=True)
+
+    with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(balance_sheet_items), y_lag)), hide_index=True, use_container_width=True)

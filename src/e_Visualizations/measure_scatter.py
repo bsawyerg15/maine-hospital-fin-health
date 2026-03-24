@@ -5,7 +5,7 @@ import xarray as xr
 from a_Config.global_constants import get_measure_tickformat
 
 
-def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray) -> go.Figure:
+def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, y_lag: int = 0) -> go.Figure:
     """
     Scatter plot of x_da vs y_da, one point per (hospital, year).
 
@@ -26,6 +26,9 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
     """
     measure_x = x_da.coords['measure'].item() if 'measure' in x_da.coords else (x_da.name or 'X')
     measure_y = y_da.coords['measure'].item() if 'measure' in y_da.coords else (y_da.name or 'Y')
+    if y_lag != 0:
+        lag_sign = '+' if y_lag > 0 else ''
+        measure_y = f'{measure_y} (lag {lag_sign}{y_lag}y)'
 
     x_series = x_da.to_series().rename('x')
     y_series = y_da.to_series().rename('y')
