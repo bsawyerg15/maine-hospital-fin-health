@@ -1,5 +1,6 @@
 import streamlit as st
-from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS
+import xarray as xr
+from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS
 from a_Config.enumerations import ChangeType
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
@@ -9,6 +10,7 @@ from d_Transformations.change_pipeline import run_change_pipeline, calc_period_o
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
+from e_Visualizations.measure_scatter import plot_measure_scatter
 
 
 #######################################################################################################
@@ -21,8 +23,8 @@ ratios_or_changes = st.sidebar.radio('Measure Source', ['Ratios', 'Income Statem
 use_ratios = ratios_or_changes == 'Ratios'
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
-income_statement_items = get_fin_statement_descendants('Total Surplus/Deficit')
-balance_sheet_items = get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity')
+income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
+balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
 match ratios_or_changes: 
     case 'Ratios': 
         measure_options = derived_ratios 
@@ -30,8 +32,11 @@ match ratios_or_changes:
         measure_options = income_statement_items
     case 'Balance Sheet (Changes)': 
         measure_options = balance_sheet_items
+all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 2)
+
+
 
 selected_states = st.sidebar.multiselect(
     'States', ['ME', 'MA'], 
@@ -67,8 +72,15 @@ underived_ds = to_dataset(underived_df)
 derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
 # failed_ratio_ds = create_failed_dataset(derived_ratio_ds, num_years_ma + 1)
 
-change_ds = calc_period_over_period_change(underived_ds, 'value', num_years_ma)
+dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
+change_ds = calc_period_over_period_change(dollar_level_ds, 'value', num_years_ma)
 # failed_change_ds = create_failed_dataset(change_ds, num_years_ma + 1)
+
+interface_ds = xr.Dataset({
+    'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
+    'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
+    'year_failed': derived_ratio_ds['year_failed'],
+})
 
 active_ds = derived_ratio_ds if use_ratios else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
@@ -94,8 +106,10 @@ st.set_page_config(
 st.title("What are the financial characteristics of failed hospitals?")
 
 #######################################################################################################
-# Intro Charts
+# Comparison of Measure vs Failed
 #######################################################################################################
+
+###### Histogram ######
 
 margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
@@ -120,6 +134,8 @@ with col:
         use_container_width=True
     )
 
+###### Bar Chart Before Failing ######
+
 col1, _, col2 = st.columns([1, 0.2, 2])
 
 with col1:
@@ -139,6 +155,8 @@ with col1:
             measure=selected_measure,
         )
     )
+
+###### Leadup to Failure Chart ######
 
 with col2:
     if use_ratios:
@@ -163,3 +181,29 @@ with col2:
                 measure=selected_measure,
             )
         )
+
+# TODO: table that shows all measures, MA & Endpoint | opeational mean, failed mean, diff
+
+#######################################################################################################
+# Comparison to Other Measures
+#######################################################################################################
+
+st.header("Comparison vs Other Measures")
+
+###### Scatter vs Other Measure ######
+
+margin = 0.3
+_, col, side_col = st.columns([margin, 1, margin])
+
+with side_col:
+    scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
+    endpoint_or_ma = st.radio('', ['Endpoint', 'MA'])
+with col:
+    scatter_da = interface_ds['last'] if endpoint_or_ma == 'Endpoint' else interface_ds['ma']
+    st.plotly_chart(plot_measure_scatter(
+        scatter_da.sel(measure=selected_measure),
+        scatter_da.sel(measure=scatter_measure_y),
+        interface_ds['year_failed'],
+    ))
+
+# TODO: table showing R^2 between measures

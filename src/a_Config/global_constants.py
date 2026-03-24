@@ -6,6 +6,7 @@ from a_Config.fin_statement_model_utils import (
     FINANCIAL_STATEMENT_MODEL,
     VALID_MEASURES,
     LINE_ITEMS,
+    ALL_RATIOS,
 )
 
 MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')

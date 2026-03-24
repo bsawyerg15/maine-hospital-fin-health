@@ -89,4 +89,5 @@ def get_enriched_financial_model() -> pd.DataFrame:
 
 
 VALID_MEASURES: Set[str] = set(FINANCIAL_STATEMENT_MODEL.index.str.strip())
-LINE_ITEMS: Set[str] = VALID_MEASURES - get_fin_statement_descendants_and_self('Ratios')
+ALL_RATIOS: Set[str] = get_fin_statement_descendants_and_self('Ratios')
+LINE_ITEMS: Set[str] = VALID_MEASURES - ALL_RATIOS
