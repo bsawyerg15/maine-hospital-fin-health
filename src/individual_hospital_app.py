@@ -62,15 +62,15 @@ selected_hospital = st.sidebar.selectbox('Hospital', hospitals_in_state)
 
 measure_source = st.sidebar.radio(
     'Measure Source',
-    ['Ratios', 'Income Statement (Changes)', 'Balance Sheet (Changes)']
+    ['Ratios', 'Income Statement', 'Balance Sheet']
 )
 
 match measure_source:
     case 'Ratios':
         measure_options = derived_ratios
-    case 'Income Statement (Changes)':
+    case 'Income Statement':
         measure_options = income_statement_items
-    case 'Balance Sheet (Changes)':
+    case 'Balance Sheet':
         measure_options = balance_sheet_items
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options)
@@ -154,8 +154,10 @@ with chart_col:
 def _sel_series(da, name, decimals=2):
     return da.to_series().rename(name).round(decimals)
 
-available_years = sorted(int(y) for y in active_ds.coords['year'].values)
-selected_year = st.selectbox('Year', available_years, index=len(available_years) - 1)
+_, col = st.columns([7.5, 1])
+with col:
+    available_years = sorted(int(y) for y in active_ds.coords['year'].values)
+    selected_year = st.selectbox('Year', available_years, index=len(available_years) - 1)
 
 ds_measures = set(active_ds.coords['measure'].values)
 table_measures = [m for m in measure_options if m in ds_measures]
@@ -180,9 +182,9 @@ table_df = hospital_vals.to_frame().join(extra_cols)
 
 if measure_source != 'Ratios':
     match measure_source:
-        case 'Income Statement (Changes)':
+        case 'Income Statement':
             roots = ['Net Income']
-        case 'Balance Sheet (Changes)':
+        case 'Balance Sheet':
             roots = ['Total Unrestricted Assets', 'Total Liabilities and Equity']
     create_hierarchical_aggrid(table_df, roots=roots)
 else:
@@ -191,7 +193,9 @@ else:
 
 ###### Data Dump ######
 
-# TODO: Implement a collapsable widget that takes active_ds and active var, pivots
-# on year, and just does a big data dump.
-# Call this All Hospital {Measure Source} data
-# implement it as a st.dataframe so it's downloadable as an excel
+data_dump_expander = st.expander(f'All Hospital {measure_source} Data', expanded=False)
+
+with data_dump_expander:
+    st.caption('Download via the toolbar icon in the top-right corner of the table.')
+    dump_df = active_ds[active_var].to_series().unstack('year')
+    st.dataframe(dump_df, use_container_width=True)
