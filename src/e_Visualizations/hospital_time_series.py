@@ -51,13 +51,13 @@ def plot_hospital_time_series(
             x=px, y=lowers,
             mode='lines', line=dict(width=0),
             fill='tonexty',
-            fillcolor='rgba(70, 130, 180, 0.2)',
+            fillcolor='rgba(180, 180, 180, 0.2)',
             showlegend=False, hoverinfo='skip',
         ))
         fig.add_trace(go.Scatter(
             x=px, y=means,
             mode='lines',
-            line=dict(color='steelblue', dash='dash', width=1.5),
+            line=dict(color='gray', dash='dash', width=1.5),
             name='Population Mean +/- 1 Std. Dev.',
         ))
 
@@ -65,8 +65,8 @@ def plot_hospital_time_series(
         x=x, y=hosp_values,
         mode='lines+markers',
         name=hospital_name or 'Hospital',
-        line=dict(color='firebrick', width=2),
-        marker=dict(color='firebrick', size=6),
+        line=dict(color='steelblue', width=2),
+        marker=dict(color='steelblue', size=6),
     ))
 
     fig.update_layout(
