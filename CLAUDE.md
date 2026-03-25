@@ -12,6 +12,10 @@ streamlit run src/main.py
 streamlit run src/analysis_app.py
 ```
 
+## Formatting
+- Always strive to use idiomatic Python
+- By and large, all files should contain a single function with the exception being small helper functions
+
 No formal test suite or linter is configured.
 
 ## Architecture

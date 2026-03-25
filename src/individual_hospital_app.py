@@ -1,8 +1,11 @@
+import pandas as pd
 import streamlit as st
-from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, ALL_RATIOS
-from a_Config.fin_statement_model_utils import get_fin_statement_descendants
+from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA
+from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
+from d_Transformations.dollar_level_pipeline import run_dollar_level_pipeline
+from d_Transformations.normalize_measures import normalize_measures
 from d_Transformations.aggregations import calc_population_aggregates
 from e_Visualizations.hospital_time_series import plot_hospital_time_series
 
@@ -27,8 +30,13 @@ def _build_datasets(states: tuple, num_years_ma: int):
     df = _load_underived(states)
     underived_ds = to_dataset(df)
     derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
-    dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
+    dollar_level_ds = run_dollar_level_pipeline(underived_ds, num_years_ma)
     return dollar_level_ds, derived_ratio_ds
+
+
+@st.cache_data
+def _normalize_dollar_ds(_dollar_level_ds, normalization_measure: str):
+    return normalize_measures(_dollar_level_ds, normalization_measure, vars=['value', 'ma'])
 
 
 #######################################################################################################
@@ -36,8 +44,8 @@ def _build_datasets(states: tuple, num_years_ma: int):
 #######################################################################################################
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
-income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
-balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
+income_statement_items = list(get_fin_statement_descendants_and_self('Total Surplus/Deficit'))
+balance_sheet_items = list(get_fin_statement_descendants_and_self('Total Unrestricted Assets') | get_fin_statement_descendants_and_self('Total Liabilities and Equity'))
 
 selected_state = st.sidebar.selectbox('State', ['ME', 'MA'])
 
@@ -61,6 +69,13 @@ match measure_source:
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options)
 
+NORMALIZATION_OPTIONS = ['Total Unrestricted Assets', 'Total Revenue', 'Total Operating Revenue']
+
+if measure_source != 'Ratios':
+    normalization = st.sidebar.selectbox('Normalization', NORMALIZATION_OPTIONS)
+else:
+    normalization = None
+
 endpoint_or_ma = st.sidebar.radio('Value Type', ['Endpoint', 'Moving Avg'])
 
 if endpoint_or_ma == 'Moving Avg':
@@ -80,9 +95,9 @@ if measure_source == 'Ratios':
     active_var = 'ma' if endpoint_or_ma == 'Moving Avg' else 'endpoint'
 else:
     active_ds = dollar_level_ds
-    active_var = 'value'
-    # TODO: I should be able to select moving average for the levels. If not, I need to add this to the pipeline for non-ratio values
+    active_var = 'ma' if endpoint_or_ma == 'Moving Avg' else 'value'
 
+normalized_ds = _normalize_dollar_ds(dollar_level_ds, normalization)
 aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
 
 #######################################################################################################
@@ -111,8 +126,26 @@ st.plotly_chart(
     use_container_width=True,
 )
 
-# TODO: Create a table of all the measures. For a given year, have columns:
-# - Measure (index)
-# - Hospital's value
+###### Measure Table ######
+
+available_years = sorted(int(y) for y in active_ds.coords['year'].values)
+selected_year = st.selectbox('Year', available_years, index=len(available_years) - 1)
+
+ds_measures = set(active_ds.coords['measure'].values)
+table_measures = [m for m in measure_options if m in ds_measures]
+
+hospital_vals = (
+    active_ds[active_var]
+    .sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year)
+    .to_series()
+    .rename('Value')
+    .round(2)
+)
+
+# TODO: add columns:
 # - Population value / Total Assets
 # - Failed value / Total Assets
+
+st.dataframe(hospital_vals.to_frame(), use_container_width=True)
+
+
