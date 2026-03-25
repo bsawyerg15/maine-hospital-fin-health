@@ -9,7 +9,7 @@
                 "-m",
                 "streamlit",
                 "run",
-                "src/main.py"
+                "src/individual_hospital_app.py"
             ],
             "group": {
                 "kind": "build",

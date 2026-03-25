@@ -1,4 +1,4 @@
-x# CLAUDE.md
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -32,12 +32,13 @@ b_Ingest → c_Processing → d_Transformations → e_Visualizations → Streaml
 - `external_mappings.csv`: maps state-reported measure names → standardized internal names
 - `hospital_metadata.csv`: contains `year_failed` per hospital — the core dependent variable
 - `fin_statement_model_utils.py`: ancestor/descendant lookup functions for the measure hierarchy
-- `global_constants.py`: loads all CSVs and exposes `FINANCIAL_STATEMENT_MODEL`, `VALID_MEASURES`, `LINE_ITEMS`, `DERIVE_RATIOS`
+- `global_constants.py`: loads all CSVs and exposes `FINANCIAL_STATEMENT_MODEL`, `VALID_MEASURES`, `LINE_ITEMS`, `DERIVE_RATIOS`, `ALL_RATIOS`; also `get_measure_tickformat(measure)` → Plotly format string (`.1%` for Percent, `.1f` for Float)
+- `enumerations/change_type.py`: `ChangeType.ARITHMETIC` (direct mean/std, used for ratios) vs `ChangeType.GEOMETRIC` (log-transform → mean/std → expm1, used for percent changes)
 
 **`b_Ingest/`** — Parses raw data
 - `ingest_me_financials.py`: parses Maine PDFs/CSVs; standardizes hospital and measure names
 - `ingest_ma_financials.py`: reads MA CSVs; converts wide → long format; handles dollar-string parsing
-- `ingest_union.py`: routes ingestion by state
+- `ingest_union.py`: routes ingestion by state via `_STATE_DISPATCH` dict — add new states here by extending the dict and implementing a corresponding ingest function
 
 **`c_Processing/`** — Cleaning and transformation
 - `a_external_to_internal_mapping.py`: aggregates external measures into standardized internal measures
@@ -49,7 +50,7 @@ b_Ingest → c_Processing → d_Transformations → e_Visualizations → Streaml
 - `aggregations.py`: `create_failed_dataset()` filters to failed hospitals and reindexes by `relative_year` (0 = failure year, -1 = one year prior, etc.)
 - `calc_changes.py`: period-over-period % change and log change (used for Line Items analysis)
 
-**`e_Visualizations/`** — Altair/Plotly chart builders called from the Streamlit apps
+**`e_Visualizations/`** — Altair/Plotly chart builders called from the Streamlit apps. Use `get_measure_tickformat()` for axis formatting — never hardcode percentage vs. float format.
 
 ### Two Streamlit apps
 
