@@ -39,6 +39,11 @@ def _normalize_dollar_ds(_dollar_level_ds, normalization_measure: str):
     return normalize_measures(_dollar_level_ds, normalization_measure, vars=['value', 'ma'])
 
 
+@st.cache_data
+def _aggregate_normalized(_normalized_ds, active_var: str):
+    return calc_population_aggregates(_normalized_ds, var=active_var)
+
+
 #######################################################################################################
 # User Inputs
 #######################################################################################################
@@ -108,23 +113,42 @@ st.title(selected_hospital)
 
 ###### Line Chart ######
 
-show_population = measure_source == 'Ratios'
+show_normalized = False
+if measure_source != 'Ratios':
+    chart_col, toggle_col = st.columns([7, 1])
+    with toggle_col:
+        st.write("")
+        show_normalized = st.toggle('Normalized')
+else:
+    chart_col = st.container()
 
-hospital_da = active_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
-pop_mean_da = aggregate_ds['mean'].sel(population='total', measure=selected_measure)
-pop_std_da = aggregate_ds['std'].sel(population='total', measure=selected_measure)
+if show_normalized:
+    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
+    hospital_da = normalized_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
+    pop_mean_da = agg_norm_ds['mean'].sel(population='total', measure=selected_measure)
+    pop_std_da = agg_norm_ds['std'].sel(population='total', measure=selected_measure)
+    chart_tickformat = '.1%'
+else:
+    hospital_da = active_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
+    pop_mean_da = aggregate_ds['mean'].sel(population='total', measure=selected_measure)
+    pop_std_da = aggregate_ds['std'].sel(population='total', measure=selected_measure)
+    chart_tickformat = None
 
-st.plotly_chart(
-    plot_hospital_time_series(
-        hospital_da,
-        pop_mean_da=pop_mean_da if show_population else None,
-        pop_std_da=pop_std_da if show_population else None,
-        hospital_name=selected_hospital,
-        measure=selected_measure,
-        title=selected_measure,
-    ),
-    use_container_width=True,
-)
+show_pop_band = measure_source == 'Ratios' or show_normalized
+
+with chart_col:
+    st.plotly_chart(
+        plot_hospital_time_series(
+            hospital_da,
+            pop_mean_da=pop_mean_da if show_pop_band else None,
+            pop_std_da=pop_std_da if show_pop_band else None,
+            hospital_name=selected_hospital,
+            measure=selected_measure,
+            title=selected_measure,
+            tickformat=chart_tickformat,
+        ),
+        use_container_width=True,
+    )
 
 ###### Measure Table ######
 
@@ -142,10 +166,47 @@ hospital_vals = (
     .round(2)
 )
 
-# TODO: add columns:
-# - Population value / Total Assets
-# - Failed value / Total Assets
+if measure_source != 'Ratios':
+    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
+    hospital_norm_col = (
+        normalized_ds[active_var]
+        .sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year)
+        .to_series()
+        .rename(f'Hospital / {normalization}')
+        .round(4)
+    )
+    pop_col = (
+        agg_norm_ds['mean']
+        .sel(population='total', measure=table_measures, year='Total')
+        .to_series()
+        .rename(f'Population / {normalization}')
+        .round(2)
+    )
+    failed_col = (
+        agg_norm_ds['mean']
+        .sel(population='failed', measure=table_measures, year='Total')
+        .to_series()
+        .rename(f'Failed / {normalization}')
+        .round(2)
+    )
+else:
+    pop_col = (
+        aggregate_ds['mean']
+        .sel(population='total', measure=table_measures, year='Total')
+        .to_series()
+        .rename('Population Mean')
+        .round(2)
+    )
+    failed_col = (
+        aggregate_ds['mean']
+        .sel(population='failed', measure=table_measures, year='Total')
+        .to_series()
+        .rename('Failed Mean')
+        .round(2)
+    )
 
-st.dataframe(hospital_vals.to_frame(), use_container_width=True)
+extra_cols = [hospital_norm_col, pop_col, failed_col] if measure_source != 'Ratios' else [pop_col, failed_col]
+table_df = hospital_vals.to_frame().join(extra_cols)
+st.dataframe(table_df, use_container_width=True)
 
 
