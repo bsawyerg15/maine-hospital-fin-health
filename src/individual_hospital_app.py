@@ -8,6 +8,7 @@ from d_Transformations.dollar_level_pipeline import run_dollar_level_pipeline
 from d_Transformations.normalize_measures import normalize_measures
 from d_Transformations.aggregations import calc_population_aggregates
 from e_Visualizations.hospital_time_series import plot_hospital_time_series
+from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
 
 st.set_page_config(
     page_title="Individual Hospital Analysis",
@@ -102,8 +103,11 @@ else:
     active_ds = dollar_level_ds
     active_var = 'ma' if endpoint_or_ma == 'Moving Avg' else 'value'
 
-normalized_ds = _normalize_dollar_ds(dollar_level_ds, normalization)
 aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
+
+if measure_source != 'Ratios':
+    normalized_ds = _normalize_dollar_ds(dollar_level_ds, normalization)
+    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
 
 #######################################################################################################
 # Visualizations
@@ -122,17 +126,12 @@ if measure_source != 'Ratios':
 else:
     chart_col = st.container()
 
-if show_normalized:
-    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
-    hospital_da = normalized_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
-    pop_mean_da = agg_norm_ds['mean'].sel(population='total', measure=selected_measure)
-    pop_std_da = agg_norm_ds['std'].sel(population='total', measure=selected_measure)
-    chart_tickformat = '.1%'
-else:
-    hospital_da = active_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
-    pop_mean_da = aggregate_ds['mean'].sel(population='total', measure=selected_measure)
-    pop_std_da = aggregate_ds['std'].sel(population='total', measure=selected_measure)
-    chart_tickformat = None
+chart_ds = normalized_ds if show_normalized else active_ds
+chart_agg_ds = agg_norm_ds if show_normalized else aggregate_ds
+hospital_da = chart_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
+pop_mean_da = chart_agg_ds['mean'].sel(population='total', measure=selected_measure)
+pop_std_da = chart_agg_ds['std'].sel(population='total', measure=selected_measure)
+chart_tickformat = '.1%' if show_normalized else None
 
 show_pop_band = measure_source == 'Ratios' or show_normalized
 
@@ -152,61 +151,47 @@ with chart_col:
 
 ###### Measure Table ######
 
+def _sel_series(da, name, decimals=2):
+    return da.to_series().rename(name).round(decimals)
+
 available_years = sorted(int(y) for y in active_ds.coords['year'].values)
 selected_year = st.selectbox('Year', available_years, index=len(available_years) - 1)
 
 ds_measures = set(active_ds.coords['measure'].values)
 table_measures = [m for m in measure_options if m in ds_measures]
 
-hospital_vals = (
-    active_ds[active_var]
-    .sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year)
-    .to_series()
-    .rename('Value')
-    .round(2)
+hospital_vals = _sel_series(
+    active_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year),
+    'Value'
 )
 
 if measure_source != 'Ratios':
-    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
-    hospital_norm_col = (
-        normalized_ds[active_var]
-        .sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year)
-        .to_series()
-        .rename(f'Hospital / {normalization}')
-        .round(4)
-    )
-    pop_col = (
-        agg_norm_ds['mean']
-        .sel(population='total', measure=table_measures, year='Total')
-        .to_series()
-        .rename(f'Population / {normalization}')
-        .round(2)
-    )
-    failed_col = (
-        agg_norm_ds['mean']
-        .sel(population='failed', measure=table_measures, year='Total')
-        .to_series()
-        .rename(f'Failed / {normalization}')
-        .round(2)
-    )
+    extra_cols = [
+        _sel_series(normalized_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}', decimals=2),
+        _sel_series(agg_norm_ds['mean'].sel(population='total', measure=table_measures, year='Total'), f'Population / {normalization}'),
+        _sel_series(agg_norm_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), f'Failed / {normalization}'),
+    ]
 else:
-    pop_col = (
-        aggregate_ds['mean']
-        .sel(population='total', measure=table_measures, year='Total')
-        .to_series()
-        .rename('Population Mean')
-        .round(2)
-    )
-    failed_col = (
-        aggregate_ds['mean']
-        .sel(population='failed', measure=table_measures, year='Total')
-        .to_series()
-        .rename('Failed Mean')
-        .round(2)
-    )
-
-extra_cols = [hospital_norm_col, pop_col, failed_col] if measure_source != 'Ratios' else [pop_col, failed_col]
+    extra_cols = [
+        _sel_series(aggregate_ds['mean'].sel(population='total', measure=table_measures, year='Total'), 'Population Mean'),
+        _sel_series(aggregate_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), 'Failed Mean'),
+    ]
 table_df = hospital_vals.to_frame().join(extra_cols)
-st.dataframe(table_df, use_container_width=True)
+
+if measure_source != 'Ratios':
+    match measure_source:
+        case 'Income Statement (Changes)':
+            roots = ['Net Income']
+        case 'Balance Sheet (Changes)':
+            roots = ['Total Unrestricted Assets', 'Total Liabilities and Equity']
+    create_hierarchical_aggrid(table_df, roots=roots)
+else:
+    st.dataframe(table_df, use_container_width=True)
 
 
+###### Data Dump ######
+
+# TODO: Implement a collapsable widget that takes active_ds and active var, pivots
+# on year, and just does a big data dump.
+# Call this All Hospital {Measure Source} data
+# implement it as a st.dataframe so it's downloadable as an excel

@@ -2,49 +2,46 @@ import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 
-def create_hierarchical_aggrid(hospital_df: pd.DataFrame, roots: list[str], height: int = 400, theme: str = "material"):
+def create_hierarchical_aggrid(
+    hospital_df: pd.DataFrame,
+    roots: list[str],
+    col_formatters: dict[str, str] | None = None,
+    height: int = 400,
+    theme: str = "material",
+):
     model = FINANCIAL_STATEMENT_MODEL
     subtree_measures = set()
     for root in roots:
-        root_mask = (model['Path'] == root) | model['Path'].str.startswith(root + '/')
+        root_path = model.loc[root, 'Path']
+        root_mask = (model['Path'] == root_path) | model['Path'].str.startswith(root_path + '/')
         subtree_measures.update(model[root_mask].index)
 
     df = hospital_df.copy()
     df = df[df.index.isin(subtree_measures)].reset_index()
-    df = df.merge(model[['Path']], left_on='Measure', right_index=True, how='left')
+    df = df.merge(model[['Path']], left_on='measure', right_index=True, how='left')
     df['hierarchy_path'] = df['Path']
     df.drop('Path', axis=1, inplace=True)
 
-    years = list(hospital_df.columns)
+    columns = list(hospital_df.columns)
 
     column_defs = [
         {'field': 'hierarchy_path', 'hide': True}
     ]
-    for year in years:
-        column_defs.append({
-            'field': year,
-            'headerName': year,
+    for col in columns:
+        col_def = {
+            'field': col,
+            'headerName': col,
             'width': 120,
             'suppressSizeToFit': True,
-            'valueFormatter': """params => {
-                const val = params.value;
-                if (val == null || isNaN(val)) return '';
-                return '$' + Math.round(val).toLocaleString('en-US');
-            }""",
-            'type': 'numericColumn'
-        })
+            'type': 'numericColumn',
+        }
+        if col_formatters and col in col_formatters:
+            col_def['valueFormatter'] = col_formatters[col]
+        column_defs.append(col_def)
 
     gb = GridOptionsBuilder.from_dataframe(df)
     grid_options = gb.build()
     grid_options["columnDefs"] = column_defs
-
-    if years:
-        last_year = years[-1]
-        grid_options["onFirstDataRendered"] = JsCode(f"""
-            function(params) {{
-                params.api.ensureColumnVisible('{last_year}');
-            }}
-        """).js_code
 
     grid_options["autoGroupColumnDef"] = {
         "headerName": "Measure",
