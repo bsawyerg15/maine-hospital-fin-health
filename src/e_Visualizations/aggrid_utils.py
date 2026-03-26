@@ -1,6 +1,14 @@
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
-from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
+from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL, get_measure_tickformat
+
+
+def _tickformat_to_js(fmt: str) -> str:
+    if fmt == '.1%':
+        return "function(p) { if (p.value == null) return ''; return (p.value * 100).toFixed(1) + '%'; }"
+    if fmt.startswith('$'):
+        return "function(p) { if (p.value == null) return ''; return '$' + p.value.toLocaleString('en-US', {minimumFractionDigits: 1, maximumFractionDigits: 1}); }"
+    return "function(p) { if (p.value == null) return ''; return p.value.toFixed(1); }"
 
 
 def create_hierarchical_aggrid(
@@ -38,12 +46,10 @@ def create_hierarchical_aggrid(
         col_def = {
             'field': col,
             'headerName': col,
-            'width': 120,
-            'suppressSizeToFit': True,
             'type': 'numericColumn',
         }
         if col_formatters and col in col_formatters:
-            col_def['valueFormatter'] = col_formatters[col]
+            col_def['valueFormatter'] = JsCode(col_formatters[col]).js_code
         column_defs.append(col_def)
 
     gb = GridOptionsBuilder.from_dataframe(df)
@@ -66,6 +72,11 @@ def create_hierarchical_aggrid(
     grid_options["getDataPath"] = JsCode("""
         function(data) {
             return data.hierarchy_path.split(";");
+        }
+    """).js_code
+    grid_options["onFirstDataRendered"] = JsCode("""
+        function(params) {
+            params.api.autoSizeAllColumns();
         }
     """).js_code
 

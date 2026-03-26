@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA
+from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, get_measure_tickformat
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
@@ -8,7 +8,7 @@ from d_Transformations.dollar_level_pipeline import run_dollar_level_pipeline
 from d_Transformations.normalize_measures import normalize_measures
 from d_Transformations.aggregations import calc_population_aggregates
 from e_Visualizations.hospital_time_series import plot_hospital_time_series
-from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
+from e_Visualizations.aggrid_utils import create_hierarchical_aggrid, _tickformat_to_js
 
 st.set_page_config(
     page_title="Individual Hospital Analysis",
@@ -186,7 +186,8 @@ if measure_source != 'Ratios':
             roots = ['Net Income']
         case 'Balance Sheet':
             roots = ['Total Unrestricted Assets', 'Total Liabilities and Equity']
-    create_hierarchical_aggrid(table_df, roots=roots)
+    col_formatters = {table_df.columns[0]: _tickformat_to_js(get_measure_tickformat(table_measures[0])), **{col: _tickformat_to_js('.1%') for col in table_df.columns[1:]}}
+    create_hierarchical_aggrid(table_df, roots=roots, col_formatters=col_formatters)
 else:
     st.dataframe(table_df, use_container_width=True)
 
