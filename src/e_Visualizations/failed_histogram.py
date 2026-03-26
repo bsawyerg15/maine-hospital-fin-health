@@ -69,9 +69,13 @@ def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=
         yaxis="y2",
     ))
 
+    is_pct = 'pct' in var
+    pct_text = ' (% Chg)'
+    xaxis_title = f'{measure_name}{pct_text}' if is_pct else measure_name
+
     fig.update_layout(
-        title=title or f'Distribution of {measure_name}',
-        xaxis=dict(title=measure_name, tickformat=get_measure_tickformat(measure_name, 'pct' in var)),
+        title=title or f'Distribution of {measure_name}{pct_text}',
+        xaxis=dict(title=xaxis_title, tickformat=get_measure_tickformat(measure_name, is_pct)),
         yaxis=dict(title="Operational count", title_font=dict(color="steelblue")),
         yaxis2=dict(
             title="Failed count",

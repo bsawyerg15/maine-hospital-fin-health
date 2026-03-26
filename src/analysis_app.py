@@ -74,7 +74,7 @@ match ratios_or_changes:
         measure_options = balance_sheet_items
 all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
 
-selected_measure = st.sidebar.selectbox('Measure', measure_options, 2)
+selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
 
 selected_states = st.sidebar.multiselect(
     'States', ['ME', 'MA'],
@@ -120,7 +120,7 @@ failed_ma_aggregate_ds = calc_aggregates(failed_ds, ma_col, change_type, year_di
 # Viz
 #######################################################################################################
 
-st.title("What are the financial characteristics of failed hospitals?")
+st.title("Understanding the financial characteristics of failed hospitals.")
 
 #######################################################################################################
 # Comparison of Measure vs Failed

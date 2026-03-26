@@ -101,10 +101,15 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
         hoverinfo='skip',
     ))
 
+    is_pct_x = measure_x not in ALL_RATIOS
+    is_pct_y = measure_y not in ALL_RATIOS
+    xaxis_title = f'{measure_x} (% Chg)' if is_pct_x else measure_x
+    yaxis_title = f'{measure_y} (% Chg)' if is_pct_y else measure_y
+
     fig.update_layout(
         title=f'{measure_x} vs {measure_y}',
-        xaxis=dict(title=measure_x, tickformat=get_measure_tickformat(measure_x, measure_x not in ALL_RATIOS)),
-        yaxis=dict(title=measure_y, tickformat=get_measure_tickformat(measure_y, measure_y not in ALL_RATIOS)),
+        xaxis=dict(title=xaxis_title, tickformat=get_measure_tickformat(measure_x, is_pct_x)),
+        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure_y, is_pct_y)),
         width=600,
         height=600,
         legend=dict(x=0.01, y=0.99),
