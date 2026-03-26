@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import xarray as xr
-from a_Config.global_constants import get_measure_tickformat
+from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 
 def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, y_lag: int = 0) -> go.Figure:
@@ -103,8 +103,8 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
 
     fig.update_layout(
         title=f'{measure_x} vs {measure_y}',
-        xaxis=dict(title=measure_x, tickformat=get_measure_tickformat(measure_x)),
-        yaxis=dict(title=measure_y, tickformat=get_measure_tickformat(measure_y)),
+        xaxis=dict(title=measure_x, tickformat=get_measure_tickformat(measure_x, measure_x not in ALL_RATIOS)),
+        yaxis=dict(title=measure_y, tickformat=get_measure_tickformat(measure_y, measure_y not in ALL_RATIOS)),
         width=600,
         height=600,
         legend=dict(x=0.01, y=0.99),

@@ -4,7 +4,7 @@ import xarray as xr
 from matplotlib.colors import LinearSegmentedColormap
 from pandas.io.formats.style import Styler
 
-from a_Config.global_constants import get_measure_tickformat
+from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 # Soft diverging palette: muted red → white → muted blue
 _SOFT_RWB = LinearSegmentedColormap.from_list(
@@ -76,8 +76,8 @@ def calc_measure_comparison_table(
 
     df = pd.DataFrame(data, index=measures, columns=columns)
 
-    pct_measures = [m for m in df.index if get_measure_tickformat(m) == '.1%']
-    float_measures = [m for m in df.index if get_measure_tickformat(m) != '.1%']
+    pct_measures = [m for m in df.index if (get_measure_tickformat(m) == '.1%') | (m not in ALL_RATIOS)]
+    float_measures = [m for m in df.index if (get_measure_tickformat(m) != '.1%') & (m in ALL_RATIOS)]
 
     styler = df.style
     if pct_measures:
@@ -92,7 +92,7 @@ def calc_measure_comparison_table(
         )
 
     for measure in df.index:
-        plotly_fmt = get_measure_tickformat(measure)
+        plotly_fmt = get_measure_tickformat(measure, measure in pct_measures)
         fmt = '{:.1%}' if plotly_fmt == '.1%' else '{:.2f}'
         styler = styler.format(fmt, na_rep='—', subset=pd.IndexSlice[measure, :])
 

@@ -13,6 +13,7 @@ from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_
 from e_Visualizations.measure_scatter import plot_measure_scatter
 from e_Visualizations.r2_table import calc_r2_table
 from e_Visualizations.measure_comparison_table import calc_measure_comparison_table
+from e_Visualizations.hospitals_per_measure_table import hospitals_per_measure_table
 
 
 st.set_page_config(
@@ -203,11 +204,7 @@ with col2:
 hospitals_per_measure_expander = st.expander(f'All {selected_measure} Values', expanded=False)
 
 with hospitals_per_measure_expander:
-    available_years = sorted(int(y) for y in active_ds.coords['year'].values)
-    selected_table_year = st.select_slider('Year', options=available_years, value=available_years[-1])
-
-    table_df = active_ds.sel(measure=selected_measure, year=selected_table_year).to_dataframe()[[last_col, ma_col]].dropna().sort_values(last_col, ascending=False)
-    st.dataframe(table_df)
+    st.dataframe(hospitals_per_measure_table(active_ds, selected_measure, last_col, ma_col, num_years_ma))
 
 ###### All Measures Exploration ######
 

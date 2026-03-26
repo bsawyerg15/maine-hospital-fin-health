@@ -44,14 +44,23 @@ HOSPITAL_METADATA: pd.DataFrame = pd.read_csv(
 ).set_index(['Organization', 'State'])
 
 
-def get_measure_tickformat(measure: str) -> str:
+def get_measure_tickformat(measure: str, is_pct: bool = False) -> str:
     """Return Plotly tickformat string for a measure based on fin_statement_model Format column.
 
     'Percent' measures (margins, returns) → '.1%'  (e.g. 0.05 → '5.0%')
     'Float' measures (ratios, days)        → '.1f'
+    'Millions' measures (balance sheet)    → '$,.1f'  (e.g. 1234567 → '$1,234,567.0')
     Unknown measures default to '.1f'.
     """
+    if is_pct:
+        return '.1%'
     if measure in FINANCIAL_STATEMENT_MODEL.index:
         fmt = FINANCIAL_STATEMENT_MODEL.loc[measure, 'Format']
-        return '.1%' if fmt == 'Percent' else '.1f'
+        match fmt:
+            case 'Percent':
+                return '.1%'
+            case 'Millions':
+                return '$,.1f'
+            case _:
+                return '.1f'
     return '.1f'

@@ -1,5 +1,5 @@
 import plotly.graph_objects as go
-from a_Config.global_constants import get_measure_tickformat
+from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 
 def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None, measure=None):
@@ -36,9 +36,11 @@ def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None, 
         marker=dict(color="steelblue", size=10),
     ))
 
+    is_pct_change = measure not in ALL_RATIOS
+
     fig.update_layout(
         title=title,
-        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure) if measure else None),
+        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure, is_pct_change) if measure else None),
         xaxis_title=None,
     )
 

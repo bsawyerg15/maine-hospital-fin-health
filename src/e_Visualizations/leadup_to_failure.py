@@ -143,7 +143,7 @@ def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, meas
 
     fig.update_layout(
         title=title,
-        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure) if measure else None),
+        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure, is_pct=True) if measure else None),
         xaxis_title=None,
     )
 
