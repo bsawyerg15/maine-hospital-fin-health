@@ -11,6 +11,7 @@ def plot_hospital_time_series(
     measure=None,
     title=None,
     tickformat=None,
+    yaxis_title=None,
 ):
     """
     Line chart of a single hospital's measure over time, with an optional
@@ -84,7 +85,7 @@ def plot_hospital_time_series(
         title=title,
         xaxis_title='Year',
         yaxis=dict(
-            title=measure,
+            title=yaxis_title if yaxis_title is not None else measure,
             tickformat=tickformat if tickformat is not None else (get_measure_tickformat(measure) if measure else None),
         ),
     )

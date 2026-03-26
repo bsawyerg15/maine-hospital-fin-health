@@ -133,6 +133,13 @@ pop_mean_da = chart_agg_ds['mean'].sel(population='total', measure=selected_meas
 pop_std_da = chart_agg_ds['std'].sel(population='total', measure=selected_measure)
 chart_tickformat = '.1%' if show_normalized else None
 
+suffixes = [s for s in [
+    '$' if (measure_source != 'Ratios' and not show_normalized) else None,
+    'Normalized' if show_normalized else None,
+    f'{num_years_ma}yma' if endpoint_or_ma == 'Moving Avg' else None,
+] if s is not None]
+title = f'{selected_measure} ({", ".join(suffixes)})' if suffixes else selected_measure
+
 show_pop_band = measure_source == 'Ratios' or show_normalized
 
 with chart_col:
@@ -143,13 +150,16 @@ with chart_col:
             pop_std_da=pop_std_da if show_pop_band else None,
             hospital_name=selected_hospital,
             measure=selected_measure,
-            title=selected_measure,
+            title=title,
             tickformat=chart_tickformat,
+            yaxis_title=title,
         ),
         use_container_width=True,
     )
 
 ###### Measure Table ######
+
+st.header('Data Exploration')
 
 def _sel_series(da, name, decimals=2):
     return da.to_series().rename(name).round(decimals)
