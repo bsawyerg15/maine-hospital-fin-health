@@ -52,16 +52,19 @@ def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=
         ))
 
     for org in da.coords['organization'].values:
-        org_da = da.sel(organization=org)
-        values = [org_da.sel(relative_year=y).item() for y in rel_years]
-        fig.add_trace(go.Scatter(
-            x=x,
-            y=values,
-            mode="lines+markers",
-            name=str(org),
-            line=dict(color='lightgray'),
-            marker=dict(color='lightgray'),
-        ))
+        for state in da.coords['state'].values:
+            org_da = da.sel(organization=org, state=state)
+            if org_da.isnull().all():
+                continue
+            values = [org_da.sel(relative_year=y).item() for y in rel_years]
+            fig.add_trace(go.Scatter(
+                x=x,
+                y=values,
+                mode="lines+markers",
+                name=str(org),
+                line=dict(color='lightgray'),
+                marker=dict(color='lightgray'),
+            ))
 
     fig.update_layout(
         title=title,
@@ -128,18 +131,21 @@ def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, meas
         ))
 
     for org in da.coords['organization'].values:
-        org_da = da.sel(organization=org)
-        values_plus_one = [1 + org_da.sel(relative_year=y).item() for y in rel_years]
-        baseline = values_plus_one[0]
-        reindexed = [-1 + v / baseline for v in values_plus_one]
-        fig.add_trace(go.Scatter(
-            x=x,
-            y=reindexed,
-            mode="lines+markers",
-            name=str(org),
-            line=dict(color='lightgray'),
-            marker=dict(color='lightgray'),
-        ))
+        for state in da.coords['state'].values:
+            org_da = da.sel(organization=org, state=state)
+            if org_da.isnull().all():
+                continue
+            values_plus_one = [1 + org_da.sel(relative_year=y).item() for y in rel_years]
+            baseline = values_plus_one[0]
+            reindexed = [-1 + v / baseline for v in values_plus_one]
+            fig.add_trace(go.Scatter(
+                x=x,
+                y=reindexed,
+                mode="lines+markers",
+                name=str(org),
+                line=dict(color='lightgray'),
+                marker=dict(color='lightgray'),
+            ))
 
     fig.update_layout(
         title=title,

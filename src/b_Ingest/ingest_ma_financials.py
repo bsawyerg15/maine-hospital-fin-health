@@ -107,13 +107,10 @@ def clean_ma_measure_names(df: pd.DataFrame) -> pd.DataFrame:
     new_measures = df.index.get_level_values('Measure').map(
         lambda x: ma_mappings.get(x, x)
     )
-    df.index = pd.MultiIndex.from_arrays(
-        [
-            df.index.get_level_values('Organization'),
-            new_measures,
-        ],
-        names=df.index.names,
-    )
+    arrays = [df.index.get_level_values(name) for name in df.index.names]
+    measure_level = df.index.names.index('Measure')
+    arrays[measure_level] = new_measures
+    df.index = pd.MultiIndex.from_arrays(arrays, names=df.index.names)
     return df
 
 

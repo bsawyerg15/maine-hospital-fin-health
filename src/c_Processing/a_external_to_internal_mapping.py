@@ -59,4 +59,5 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
 
     df_aggregated = df_to_agg.groupby(level=df_to_agg.index.names).sum(min_count=1)
 
-    return pd.concat([df_remaining, df_aggregated])
+    combined = pd.concat([df_remaining, df_aggregated])
+    return combined[~combined.index.duplicated(keep='last')]
