@@ -21,7 +21,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
 #######################################################################################################
 # Cached pipeline helpers
 #######################################################################################################
@@ -84,8 +83,8 @@ selected_states = st.sidebar.multiselect(
 use_full_window = st.sidebar.checkbox('Use Full Window', value=True)
 
 if not use_full_window:
-    year_begin = 2000#st.sidebar.number_input('Begin Year', min_value=2000, max_value=2025, value=2000, step=1)
-    year_end = 2025#st.sidebar.number_input('End Year', min_value=2000, max_value=2025, value=2025, step=1)
+    year_begin = st.sidebar.number_input('Begin Year', min_value=2000, max_value=2025, value=2000, step=1)
+    year_end = st.sidebar.number_input('End Year', min_value=2000, max_value=2025, value=2025, step=1)
     if year_begin >= year_end:
         st.sidebar.error('Begin year must be before end year.')
         st.stop()
@@ -198,6 +197,19 @@ with col2:
                 measure=selected_measure,
             )
         )
+
+###### Sorted Hospitals Per Measure ######
+
+hospitals_per_measure_expander = st.expander(f'All {selected_measure} Values', expanded=False)
+
+with hospitals_per_measure_expander:
+    available_years = sorted(int(y) for y in active_ds.coords['year'].values)
+    selected_table_year = st.select_slider('Year', options=available_years, value=available_years[-1])
+
+    table_df = active_ds.sel(measure=selected_measure, year=selected_table_year).to_dataframe()[[last_col, ma_col]].dropna().sort_values(last_col, ascending=False)
+    st.dataframe(table_df)
+
+###### All Measures Exploration ######
 
 st.subheader("All Measures: Operational vs. Failed")
 st.dataframe(calc_measure_comparison_table(aggregate_ds, ma_aggregate_ds, failed_aggregate_ds, failed_ma_aggregate_ds, measure_options))
