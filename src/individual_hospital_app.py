@@ -119,7 +119,7 @@ st.title(selected_hospital)
 
 show_normalized = False
 if measure_source != 'Ratios':
-    chart_col, toggle_col = st.columns([7, 1])
+    chart_col, toggle_col = st.columns([6.5, 1])
     with toggle_col:
         st.write("")
         show_normalized = st.toggle('Normalized')

@@ -3,5 +3,6 @@ pandas==2.3.3
 numpy==2.4.2
 xarray
 plotly
+matplotlib
 pdfplumber
 streamlit-aggrid==1.2.1.post2
