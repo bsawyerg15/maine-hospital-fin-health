@@ -156,8 +156,8 @@ def _sel_series(da, name, decimals=2):
 
 _, col = st.columns([7.5, 1])
 with col:
-    available_years = sorted(int(y) for y in active_ds.coords['year'].values)
-    selected_year = st.selectbox('Year', available_years, index=len(available_years) - 1)
+    available_years = sorted((int(y) for y in active_ds.coords['year'].values), reverse=True)
+    selected_year = st.selectbox('Year', available_years, index=0)
 
 ds_measures = set(active_ds.coords['measure'].values)
 table_measures = [m for m in measure_options if m in ds_measures]

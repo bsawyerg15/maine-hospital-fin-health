@@ -26,7 +26,7 @@ def get_measure_paths() -> Dict[str, str]:
             paths[m] = m
             return m
         parent_path = recurse(str(parent))
-        paths[m] = f"{parent_path}/{m}"
+        paths[m] = f"{parent_path};{m}"
         return paths[m]
     for measure in model.index:
         recurse(str(measure))
@@ -75,7 +75,7 @@ def get_fin_statement_path2(measure: str) -> str:
         if pd.isna(parent) or parent == '' or parent == m:
             path = m
         else:
-            path = recurse(parent) + '/' + m
+            path = recurse(parent) + ';' + m
         path_cache[m] = path
         return path
     return recurse(measure)
