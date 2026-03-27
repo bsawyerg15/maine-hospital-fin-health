@@ -70,7 +70,7 @@ def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=
     ))
 
     is_pct = 'pct' in var
-    pct_text = ' (% Chg)'
+    pct_text = ' (% Chg)' if is_pct else ''
     xaxis_title = f'{measure_name}{pct_text}' if is_pct else measure_name
 
     fig.update_layout(
