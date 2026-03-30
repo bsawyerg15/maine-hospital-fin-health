@@ -4,6 +4,7 @@ from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
 from b_Ingest.ingest_union import get_financials_by_state
 from c_Processing.a_external_to_internal_mapping import apply_external_mappings
 from c_Processing.b_sum_of_children import add_computed_parent_rows
+from d_Transformations.calc_systems_from_hospitals import calc_systems_from_hospitals
 
 
 def drop_non_model_measures(df: pd.DataFrame) -> pd.DataFrame:
@@ -25,6 +26,7 @@ def process_state_input_df(state, input_df=None) -> pd.DataFrame:
     df = apply_external_mappings(input_df, state)
     df = drop_non_model_measures(df)
     df = add_computed_parent_rows(df)
+    df = calc_systems_from_hospitals(df, state)
 
     df['State'] = state
     df = df.set_index('State', append=True).reorder_levels(
