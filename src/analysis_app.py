@@ -1,6 +1,6 @@
 import streamlit as st
 import xarray as xr
-from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS
+from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import ChangeType
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
@@ -32,8 +32,9 @@ def _load_underived(states: tuple):
 
 
 @st.cache_data
-def _build_datasets(states: tuple, num_years_ma: int, year_begin=None, year_end=None):
+def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_begin=None, year_end=None):
     df = _load_underived(states)
+    df = df[df.index.get_level_values('Organization').isin(entities)]
     if year_begin is not None and year_end is not None:
         year_index = df.index.get_level_values('Year').astype(int)
         df = df[(year_index >= year_begin) & (year_index <= year_end)]
@@ -59,6 +60,8 @@ def _cached_r2_table(states: tuple, num_years_ma: int, year_begin, year_end, x_m
 # User Inputs
 #######################################################################################################
 
+###### Measure Configs #######
+
 ratios_or_changes = st.sidebar.radio('Measure Source', ['Ratios', 'Income Statement (Changes)', 'Balance Sheet (Changes)'])
 use_ratios = ratios_or_changes == 'Ratios'
 
@@ -76,10 +79,37 @@ all_measure_options = derived_ratios + income_statement_items + balance_sheet_it
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
 
+###### Entity Configs #######
+
+st.sidebar.markdown('---')
+
 selected_states = st.sidebar.multiselect(
     'States', ['ME', 'MA'],
     default=['ME']
 )
+
+hospitals_or_systems = st.sidebar.segmented_control('', options=['Hospitals', 'Systems'], default='Hospitals', label_visibility='collapsed')
+
+available_systems = {
+    f"{sys} ({state})": (sys, state)
+    for sys, state in SYSTEMS_TO_HOSPITALS_MAP
+    if state in selected_states
+}
+options = list(available_systems.keys())
+
+selected_labels = st.sidebar.multiselect(
+    'Systems Filter', options=options, default=options, key="systems_multiselect"
+)
+systems_to_include = {available_systems[label] for label in selected_labels}
+
+if hospitals_or_systems == 'Hospitals':
+    entities_to_include = {h for key in systems_to_include for h in SYSTEMS_TO_HOSPITALS_MAP[key]}
+else:
+    entities_to_include = systems_to_include
+
+###### Analytical Configs #######
+
+st.sidebar.markdown('---')
 
 use_full_window = st.sidebar.checkbox('Use Full Window', value=True)
 
@@ -103,7 +133,7 @@ num_years_ma = st.sidebar.number_input(
 #######################################################################################################
 
 states_key = tuple(selected_states)
-derived_ratio_ds, change_ds, interface_ds = _build_datasets(states_key, num_years_ma, year_begin, year_end)
+derived_ratio_ds, change_ds, interface_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
 
 active_ds = derived_ratio_ds if use_ratios else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
@@ -132,7 +162,7 @@ margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
-    is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg']) == 'Moving Avg'
+    is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg.'], label_visibility='collapsed') == 'Moving Avg.'
 
 non_failed_mean = float(aggregate_ds['mean'].sel(population='non_failed', measure=selected_measure, year='Total'))
 non_failed_std_dev = float(aggregate_ds['std'].sel(population='non_failed', measure=selected_measure, year='Total'))
@@ -224,7 +254,7 @@ _, col, side_col = st.columns([margin, 1, margin])
 
 with side_col:
     scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
-    endpoint_or_ma = st.radio('', ['Endpoint', 'MA'])
+    endpoint_or_ma = st.radio('', ['Endpoint', 'Moving Avg.'], label_visibility='collapsed', key='for_scatter')
     y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
 with col:
     scatter_da = interface_ds['last'] if endpoint_or_ma == 'Endpoint' else interface_ds['ma']

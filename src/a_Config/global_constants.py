@@ -9,6 +9,10 @@ from a_Config.fin_statement_model_utils import (
     ALL_RATIOS,
 )
 
+#######################################################################################################
+# Fin Statement Metadata
+#######################################################################################################
+
 MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')
 
 ORG_MAPPINGS_ME: Dict[str, str] = pd.read_csv(
@@ -39,10 +43,26 @@ DERIVE_RATIOS: pd.DataFrame = pd.read_csv(
 )
 DERIVE_RATIOS['Multiplier'] = DERIVE_RATIOS['Multiplier'].fillna(1.0).astype(float)
 
+#######################################################################################################
+# Entity Metadata
+#######################################################################################################
+
 HOSPITAL_METADATA: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_metadata.csv')
 ).set_index(['Organization', 'State'])
 
+def _build_systems_map() -> Dict[tuple[str, str], set[str]]:
+    df = HOSPITAL_METADATA.reset_index()
+    missing = df[df['Healthcare System'].isna()]['Organization'].tolist()
+    if missing:
+        raise ValueError(f"Organizations missing a Healthcare System: {missing}. If independent, label Non-Affiliated.")
+    return df.groupby(['Healthcare System', 'State'])['Organization'].apply(set).to_dict()
+
+SYSTEMS_TO_HOSPITALS_MAP: Dict[tuple[str, str], set[str]] = _build_systems_map()
+
+#######################################################################################################
+# Helper Functions
+#######################################################################################################
 
 def get_measure_tickformat(measure: str, is_pct: bool = False) -> str:
     """Return Plotly tickformat string for a measure based on fin_statement_model Format column.
