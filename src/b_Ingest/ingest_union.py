@@ -16,8 +16,7 @@ _ME_HOSPITAL_FILES = [
     "hospital_ratios_2020_2024.csv"
 ]
 _ME_HEALTH_SYSTEMS_FILES = [
-    "health_systems_dollar_elements_2020_2024.csv",
-    "health_systems_ratios_2020_2024.csv",
+    "health_systems_dollar_elements_2020_2024.csv"
 ]
 _ME_FILES = _ME_HOSPITAL_FILES + _ME_HEALTH_SYSTEMS_FILES
 
