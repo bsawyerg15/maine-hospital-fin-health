@@ -5,7 +5,7 @@ from b_Ingest.ingest_ma_financials import create_combined_ma_financial_df, MA_FI
 
 
 _ME_DIR = os.path.join("src", "z_Data", "Preprocessed_Data")
-_ME_FILES = [
+_ME_HOSPITAL_FILES = [
     "hospital_dollar_elements_2005_2009.csv",
     "hospital_dollar_elements_2010_2014.csv",
     "hospital_dollar_elements_2015_2019.csv",
@@ -15,6 +15,11 @@ _ME_FILES = [
     "hospital_ratios_2015_2019.csv",
     "hospital_ratios_2020_2024.csv"
 ]
+_ME_HEALTH_SYSTEMS_FILES = [
+    "health_systems_dollar_elements_2020_2024.csv",
+    "health_systems_ratios_2020_2024.csv",
+]
+_ME_FILES = _ME_HOSPITAL_FILES + _ME_HEALTH_SYSTEMS_FILES
 
 _STATE_DISPATCH = {
     "ME": lambda: create_combined_me_financial_df(_ME_DIR, _ME_FILES),
