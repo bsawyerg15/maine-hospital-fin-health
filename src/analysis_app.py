@@ -105,7 +105,7 @@ systems_to_include = {available_systems[label] for label in selected_labels}
 if hospitals_or_systems == 'Hospitals':
     entities_to_include = {h for key in systems_to_include for h in SYSTEMS_TO_HOSPITALS_MAP[key]}
 else:
-    entities_to_include = systems_to_include
+    entities_to_include = {sys for sys, state in systems_to_include}
 
 ###### Analytical Configs #######
 

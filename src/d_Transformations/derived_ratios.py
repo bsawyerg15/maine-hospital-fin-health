@@ -38,4 +38,6 @@ def derive_ratios(da: xr.DataArray) -> xr.DataArray:
         ratio = component_sum(num_group) / component_sum(den_group)
         ratio_slices.append(ratio.expand_dims(measure=[ratio_name]))
 
+    if not ratio_slices:
+        return da.isel(measure=[]).rename({'measure': 'measure'})
     return xr.concat(ratio_slices, dim='measure')

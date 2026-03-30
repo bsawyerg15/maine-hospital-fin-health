@@ -21,6 +21,12 @@ def calc_aggregates(ds: xr.Dataset, var: str, change_type: ChangeType = ChangeTy
         The year_dim coordinate contains all values present in ds plus the string
         'Total' (all years pooled).
     """
+    if not ds.data_vars or ds[var].sizes.get('measure', 1) == 0:
+        year_vals = list(ds.coords[year_dim].values) + ['Total'] if year_dim in ds.coords else ['Total']
+        empty = xr.DataArray(np.empty((0, len(year_vals))), dims=['measure', year_dim],
+                             coords={'measure': np.array([], dtype=object), year_dim: year_vals})
+        return xr.Dataset({'mean': empty, 'std': empty})
+
     is_geometric = change_type == ChangeType.GEOMETRIC
     data = ds[var]
     if is_geometric:

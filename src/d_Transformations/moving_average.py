@@ -17,6 +17,8 @@ def take_moving_average(da: xr.DataArray, num_years: int) -> xr.DataArray:
         DataArray of same shape where each year contains the moving average
         ending on that year, or NaN if fewer than num_years observations exist.
     """
+    if num_years > da.sizes['year']:
+        return xr.full_like(da, fill_value=np.nan)
     return da.rolling(year=num_years, min_periods=num_years).mean()
 
 
@@ -36,5 +38,7 @@ def take_geometric_moving_average(da: xr.DataArray, num_years: int) -> xr.DataAr
     Returns:
         DataArray of same shape containing the geometric moving average.
     """
+    if num_years > da.sizes['year']:
+        return xr.full_like(da, fill_value=np.nan)
     log_da = np.log(1 + da)
     return np.exp(log_da.rolling(year=num_years, min_periods=num_years).mean()) - 1

@@ -26,7 +26,7 @@ The pipeline flows through alphabetically-ordered subdirectories in `src/`:
 b_Ingest → c_Processing → d_Transformations → e_Visualizations → Streamlit apps
 ```
 
-**Data structure transition**: Raw ingestion produces a pandas DataFrame with a MultiIndex `(Organization, State, Measure, Year)` and columns `Value` / `Year Failed`. This is converted to an **xarray Dataset** at the end of `c_Processing/c_main_data_pipeline.py`, with dimensions `(organization, state, measure, year)` and data variables `value`, `endpoint`, `ma`, `pct_change_*`, `ln_change_*`. All `d_Transformations/` modules operate on xarray.
+**Data structure transition**: Raw ingestion produces a pandas DataFrame with a MultiIndex `(Organization, State, Measure, Year)` where `Organization` can be a hospital or health system and columns `Value` / `Year Failed`. This is converted to an **xarray Dataset** at the end of `c_Processing/c_main_data_pipeline.py`, with dimensions `(organization, state, measure, year)` and data variables `value`, `endpoint`, `ma`, `pct_change_*`, `ln_change_*`. All `d_Transformations/` modules operate on xarray.
 
 ### Key layers
 
