@@ -44,6 +44,18 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+                {
+            "name": "Python: individual_hospital_app.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/individual_hospital_app.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

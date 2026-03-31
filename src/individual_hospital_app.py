@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, get_measure_tickformat
+from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
@@ -27,8 +27,9 @@ def _load_underived(states: tuple):
 
 
 @st.cache_data
-def _build_datasets(states: tuple, num_years_ma: int):
+def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset):
     df = _load_underived(states)
+    df = df[df.index.get_level_values('Organization').isin(entities)]
     underived_ds = to_dataset(df)
     derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
     dollar_level_ds = run_dollar_level_pipeline(underived_ds, num_years_ma)
@@ -55,10 +56,18 @@ balance_sheet_items = list(get_fin_statement_descendants_and_self('Total Unrestr
 
 selected_state = st.sidebar.selectbox('State', ['ME', 'MA'])
 
-hospitals_in_state = sorted(
-    org for org, state in HOSPITAL_METADATA.index if state == selected_state
-)
-selected_hospital = st.sidebar.selectbox('Hospital', hospitals_in_state)
+hospital_or_system = st.sidebar.segmented_control('', ['Hospital', 'System'], default='Hospital', label_visibility='collapsed')
+
+if hospital_or_system == 'Hospital':
+    entities_in_state = sorted(
+        org for org, state in HOSPITAL_METADATA.index if state == selected_state
+    )
+else:
+    entities_in_state = sorted(
+        [system for (system, state) in SYSTEMS_TO_HOSPITALS_MAP if state == selected_state]
+    )
+
+selected_entity = st.sidebar.selectbox(hospital_or_system, entities_in_state)
 
 measure_source = st.sidebar.radio(
     'Measure Source',
@@ -94,7 +103,7 @@ else:
 # Data
 #######################################################################################################
 
-dollar_level_ds, derived_ratio_ds = _build_datasets((selected_state,), num_years_ma)
+dollar_level_ds, derived_ratio_ds = _build_datasets((selected_state,), num_years_ma, frozenset(entities_in_state))
 
 if measure_source == 'Ratios':
     active_ds = derived_ratio_ds
@@ -113,7 +122,7 @@ if measure_source != 'Ratios':
 # Visualizations
 #######################################################################################################
 
-st.title(selected_hospital)
+st.title(selected_entity)
 
 ###### Line Chart ######
 
@@ -128,7 +137,7 @@ else:
 
 chart_ds = normalized_ds if show_normalized else active_ds
 chart_agg_ds = agg_norm_ds if show_normalized else aggregate_ds
-hospital_da = chart_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=selected_measure)
+hospital_da = chart_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=selected_measure)
 pop_mean_da = chart_agg_ds['mean'].sel(population='total', measure=selected_measure)
 pop_std_da = chart_agg_ds['std'].sel(population='total', measure=selected_measure)
 chart_tickformat = '.1%' if show_normalized else None
@@ -148,7 +157,7 @@ with chart_col:
             hospital_da,
             pop_mean_da=pop_mean_da if show_pop_band else None,
             pop_std_da=pop_std_da if show_pop_band else None,
-            hospital_name=selected_hospital,
+            hospital_name=selected_entity,
             measure=selected_measure,
             title=title,
             tickformat=chart_tickformat,
@@ -173,13 +182,13 @@ ds_measures = set(active_ds.coords['measure'].values)
 table_measures = [m for m in measure_options if m in ds_measures]
 
 hospital_vals = _sel_series(
-    active_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year),
+    active_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year),
     'Value'
 )
 
 if measure_source != 'Ratios':
     extra_cols = [
-        _sel_series(normalized_ds[active_var].sel(organization=selected_hospital, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}', decimals=2),
+        _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}', decimals=2),
         _sel_series(agg_norm_ds['mean'].sel(population='total', measure=table_measures, year='Total'), f'Population / {normalization}'),
         _sel_series(agg_norm_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), f'Failed / {normalization}'),
     ]
