@@ -1,6 +1,8 @@
 import pandas as pd
 import streamlit as st
+from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
+from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
@@ -71,22 +73,22 @@ selected_entity = st.sidebar.selectbox(hospital_or_system, entities_in_state)
 
 measure_source = st.sidebar.radio(
     'Measure Source',
-    ['Ratios', 'Income Statement', 'Balance Sheet']
+    [MeasureSource.RATIOS, MeasureSource.INCOME_STATEMENT, MeasureSource.BALANCE_SHEET]
 )
 
 match measure_source:
-    case 'Ratios':
+    case MeasureSource.RATIOS:
         measure_options = derived_ratios
-    case 'Income Statement':
+    case MeasureSource.INCOME_STATEMENT:
         measure_options = income_statement_items
-    case 'Balance Sheet':
+    case MeasureSource.BALANCE_SHEET:
         measure_options = balance_sheet_items
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options)
 
 NORMALIZATION_OPTIONS = ['Total Unrestricted Assets', 'Total Revenue', 'Total Operating Revenue']
 
-if measure_source != 'Ratios':
+if measure_source != MeasureSource.RATIOS:
     normalization = st.sidebar.selectbox('Normalization', NORMALIZATION_OPTIONS)
 else:
     normalization = None

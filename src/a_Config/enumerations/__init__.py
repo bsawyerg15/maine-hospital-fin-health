@@ -1,1 +1,1 @@
-from .change_type import ChangeType
+from .change_type_enum import ChangeType

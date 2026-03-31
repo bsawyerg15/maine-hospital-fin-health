@@ -1,5 +1,6 @@
 import streamlit as st
 import xarray as xr
+from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import ChangeType
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
@@ -62,18 +63,18 @@ def _cached_r2_table(states: tuple, num_years_ma: int, year_begin, year_end, x_m
 
 ###### Measure Configs #######
 
-ratios_or_changes = st.sidebar.radio('Measure Source', ['Ratios', 'Income Statement (Changes)', 'Balance Sheet (Changes)'])
-use_ratios = ratios_or_changes == 'Ratios'
+ratios_or_changes = st.sidebar.radio('Measure Source', [MeasureSource.RATIOS, MeasureSource.INCOME_STATEMENT, MeasureSource.BALANCE_SHEET])
+use_ratios = ratios_or_changes == MeasureSource.RATIOS
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
 income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
 balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
 match ratios_or_changes:
-    case 'Ratios':
+    case MeasureSource.RATIOS:
         measure_options = derived_ratios
-    case 'Income Statement (Changes)':
+    case MeasureSource.INCOME_STATEMENT:
         measure_options = income_statement_items
-    case 'Balance Sheet (Changes)':
+    case MeasureSource.BALANCE_SHEET:
         measure_options = balance_sheet_items
 all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
 
