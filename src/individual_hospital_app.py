@@ -73,8 +73,9 @@ selected_entity = st.sidebar.selectbox(hospital_or_system, entities_in_state)
 
 measure_source = st.sidebar.radio(
     'Measure Source',
-    [MeasureSource.RATIOS, MeasureSource.INCOME_STATEMENT, MeasureSource.BALANCE_SHEET]
+    [e.value for e in MeasureSource]
 )
+measure_source = MeasureSource(measure_source)
 
 match measure_source:
     case MeasureSource.RATIOS:
@@ -93,9 +94,11 @@ if measure_source != MeasureSource.RATIOS:
 else:
     normalization = None
 
-endpoint_or_ma = st.sidebar.radio('Value Type', ['Endpoint', 'Moving Avg'])
+endpoint_or_ma = MovingAvgOrEndpoint(
+    st.sidebar.radio('Value Type', [e.value for e in MovingAvgOrEndpoint])
+)
 
-if endpoint_or_ma == 'Moving Avg':
+if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG:
     num_years_ma = st.sidebar.number_input('Lookback Years', 1, 10, 5)
 else:
     num_years_ma = 5
@@ -107,16 +110,16 @@ else:
 
 dollar_level_ds, derived_ratio_ds = _build_datasets((selected_state,), num_years_ma, frozenset(entities_in_state))
 
-if measure_source == 'Ratios':
+if measure_source == MeasureSource.RATIOS:
     active_ds = derived_ratio_ds
-    active_var = 'ma' if endpoint_or_ma == 'Moving Avg' else 'endpoint'
+    active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'endpoint'
 else:
     active_ds = dollar_level_ds
-    active_var = 'ma' if endpoint_or_ma == 'Moving Avg' else 'value'
+    active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'value'
 
 aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
 
-if measure_source != 'Ratios':
+if measure_source != MeasureSource.RATIOS:
     normalized_ds = _normalize_dollar_ds(dollar_level_ds, normalization)
     agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
 
@@ -129,7 +132,7 @@ st.title(selected_entity)
 ###### Line Chart ######
 
 show_normalized = False
-if measure_source != 'Ratios':
+if measure_source != MeasureSource.RATIOS:
     chart_col, toggle_col = st.columns([6.5, 1])
     with toggle_col:
         st.write("")
@@ -145,13 +148,13 @@ pop_std_da = chart_agg_ds['std'].sel(population='total', measure=selected_measur
 chart_tickformat = '.1%' if show_normalized else None
 
 suffixes = [s for s in [
-    '$' if (measure_source != 'Ratios' and not show_normalized) else None,
+    '$' if (measure_source != MeasureSource.RATIOS and not show_normalized) else None,
     'Normalized' if show_normalized else None,
-    f'{num_years_ma}yma' if endpoint_or_ma == 'Moving Avg' else None,
+    f'{num_years_ma}yma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else None,
 ] if s is not None]
 title = f'{selected_measure} ({", ".join(suffixes)})' if suffixes else selected_measure
 
-show_pop_band = measure_source == 'Ratios' or show_normalized
+show_pop_band = measure_source == MeasureSource.RATIOS or show_normalized
 
 with chart_col:
     st.plotly_chart(
@@ -188,7 +191,7 @@ hospital_vals = _sel_series(
     'Value'
 )
 
-if measure_source != 'Ratios':
+if measure_source != MeasureSource.RATIOS:
     extra_cols = [
         _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}', decimals=2),
         _sel_series(agg_norm_ds['mean'].sel(population='total', measure=table_measures, year='Total'), f'Population / {normalization}'),
@@ -201,11 +204,11 @@ else:
     ]
 table_df = hospital_vals.to_frame().join(extra_cols)
 
-if measure_source != 'Ratios':
+if measure_source != MeasureSource.RATIOS:
     match measure_source:
-        case 'Income Statement':
+        case MeasureSource.INCOME_STATEMENT:
             roots = ['Net Income']
-        case 'Balance Sheet':
+        case MeasureSource.BALANCE_SHEET:
             roots = ['Total Unrestricted Assets', 'Total Liabilities and Equity']
     col_formatters = {table_df.columns[0]: _tickformat_to_js(get_measure_tickformat(table_measures[0])), **{col: _tickformat_to_js('.1%') for col in table_df.columns[1:]}}
     create_hierarchical_aggrid(table_df, roots=roots, col_formatters=col_formatters)

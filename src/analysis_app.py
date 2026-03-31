@@ -1,8 +1,7 @@
 import streamlit as st
 import xarray as xr
-from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
-from a_Config.enumerations import ChangeType
+from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
@@ -63,7 +62,10 @@ def _cached_r2_table(states: tuple, num_years_ma: int, year_begin, year_end, x_m
 
 ###### Measure Configs #######
 
-ratios_or_changes = st.sidebar.radio('Measure Source', [MeasureSource.RATIOS, MeasureSource.INCOME_STATEMENT, MeasureSource.BALANCE_SHEET])
+ratios_or_changes = MeasureSource(
+    st.sidebar.radio('Measure Source', [e.value for e in MeasureSource])
+)
+
 use_ratios = ratios_or_changes == MeasureSource.RATIOS
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
@@ -163,7 +165,7 @@ margin = 0.3
 _, col, side_col = st.columns([0.1, 1, margin])
 
 with side_col:
-    is_use_ma_for_hist = st.radio('', ['Endpoint', 'Moving Avg.'], label_visibility='collapsed') == 'Moving Avg.'
+    is_use_ma_for_hist = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed') == MovingAvgOrEndpoint.MOVING_AVG.value
 
 non_failed_mean = float(aggregate_ds['mean'].sel(population='non_failed', measure=selected_measure, year='Total'))
 non_failed_std_dev = float(aggregate_ds['std'].sel(population='non_failed', measure=selected_measure, year='Total'))
@@ -255,10 +257,10 @@ _, col, side_col = st.columns([margin, 1, margin])
 
 with side_col:
     scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
-    endpoint_or_ma = st.radio('', ['Endpoint', 'Moving Avg.'], label_visibility='collapsed', key='for_scatter')
+    endpoint_or_ma = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
     y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
 with col:
-    scatter_da = interface_ds['last'] if endpoint_or_ma == 'Endpoint' else interface_ds['ma']
+    scatter_da = interface_ds['last'] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else interface_ds['ma']
     y_da = scatter_da.sel(measure=scatter_measure_y)
     if y_lag != 0:
         y_da = y_da.shift(year=y_lag)
