@@ -56,7 +56,7 @@ balance_sheet_items = list(get_fin_statement_descendants_and_self('Total Unrestr
 
 selected_state = st.sidebar.selectbox('State', ['ME', 'MA'])
 
-hospital_or_system = st.sidebar.segmented_control('', ['Hospital', 'System'], default='Hospital', label_visibility='collapsed')
+hospital_or_system = st.sidebar.segmented_control('', ['Hospital', 'System'], default='System', label_visibility='collapsed')
 
 if hospital_or_system == 'Hospital':
     entities_in_state = sorted(

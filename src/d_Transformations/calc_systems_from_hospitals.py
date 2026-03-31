@@ -46,7 +46,7 @@ def calc_systems_from_hospitals(df: pd.DataFrame, state: str) -> pd.DataFrame:
 
         grouped = df_members.groupby(level=['Measure', 'Year'])
         counts = grouped['Value'].count()
-        sums = grouped['Value'].sum(min_count=len(hospitals))
+        sums = grouped['Value'].sum(min_count=1)
         sums = sums.where(counts == len(hospitals))
 
         new_rows = sums.rename('Value').reset_index()
@@ -58,5 +58,4 @@ def calc_systems_from_hospitals(df: pd.DataFrame, state: str) -> pd.DataFrame:
         return df
 
     all_system_rows = pd.concat(system_rows)
-    new_only = all_system_rows[~all_system_rows.index.isin(df.index)]
-    return pd.concat([df, new_only])
+    return df.combine_first(all_system_rows)
