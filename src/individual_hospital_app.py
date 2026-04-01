@@ -101,10 +101,7 @@ endpoint_or_ma = MovingAvgOrEndpoint(
     st.sidebar.radio('Value Type', [e.value for e in MovingAvgOrEndpoint])
 )
 
-if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG:
-    num_years_ma = st.sidebar.number_input('Lookback Years', 1, 10, 5)
-else:
-    num_years_ma = 5
+num_years_ma = st.sidebar.number_input('Lookback Years', 1, 10, 5)
 
 
 #######################################################################################################
@@ -198,6 +195,21 @@ hospital_vals = _sel_series(
     'Value'
 )
 
+# TODO: This should really be refactored into a function
+start_year = selected_year - num_years_ma
+available_years_set = set(int(y) for y in active_ds.coords['year'].values)
+if start_year in available_years_set:
+    hospital_start_vals = _sel_series(
+        active_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=start_year),
+        '_start'
+    )
+    if measure_source == MeasureSource.RATIOS:
+        change_col = ((hospital_vals - hospital_start_vals) / num_years_ma).rename('Ann. Change')
+    else:
+        change_col = ((hospital_vals / hospital_start_vals) ** (1 / num_years_ma) - 1).rename('Ann. % Change')
+else:
+    change_col = None
+
 if measure_source != MeasureSource.RATIOS:
     extra_cols = [
         _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}'),
@@ -211,7 +223,8 @@ else:
         _sel_series(aggregate_ds['mean'].sel(population='total', measure=table_measures, year='Total'), 'Population Mean'),
         _sel_series(aggregate_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), 'Failed Mean'),
     ]
-table_df = hospital_vals.to_frame().join(extra_cols)
+change_cols = [change_col] if change_col is not None else []
+table_df = hospital_vals.to_frame().join(change_cols + extra_cols)
 
 if measure_source != MeasureSource.RATIOS:
     match measure_source:
@@ -258,7 +271,7 @@ if hospital_or_system == 'System':
 
 ###### Data Dump ######
 
-data_dump_expander = st.expander(f'All Hospital {measure_source} Data', expanded=False)
+data_dump_expander = st.expander(f'All Hospital {measure_source.value} Data', expanded=False)
 
 with data_dump_expander:
     st.caption('Download via the toolbar icon in the top-right corner of the table.')
