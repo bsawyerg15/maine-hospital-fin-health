@@ -60,16 +60,19 @@ selected_state = st.sidebar.selectbox('State', ['ME', 'MA'])
 
 hospital_or_system = st.sidebar.segmented_control('', ['Hospital', 'System'], default='System', label_visibility='collapsed')
 
-if hospital_or_system == 'Hospital':
-    entities_in_state = sorted(
-        org for org, state in HOSPITAL_METADATA.index if state == selected_state
-    )
-else:
-    entities_in_state = sorted(
-        [system for (system, state) in SYSTEMS_TO_HOSPITALS_MAP if state == selected_state]
-    )
+hospitals_in_state = sorted(org for org, state in HOSPITAL_METADATA.index if state == selected_state)
+systems_in_state = sorted(system for (system, state) in SYSTEMS_TO_HOSPITALS_MAP if state == selected_state)
+entities_in_state = sorted(set(hospitals_in_state) | set(systems_in_state))
 
-selected_entity = st.sidebar.selectbox(hospital_or_system, entities_in_state)
+type_entities = hospitals_in_state if hospital_or_system == 'Hospital' else systems_in_state
+
+selected_entity = st.sidebar.selectbox(hospital_or_system, type_entities)
+
+parent_system = next(
+    (system for (system, state), hospitals in SYSTEMS_TO_HOSPITALS_MAP.items()
+     if state == selected_state and selected_entity in hospitals),
+    None
+) if hospital_or_system == 'Hospital' else None
 
 measure_source = st.sidebar.radio(
     'Measure Source',
@@ -111,16 +114,20 @@ else:
 dollar_level_ds, derived_ratio_ds = _build_datasets((selected_state,), num_years_ma, frozenset(entities_in_state))
 
 if measure_source == MeasureSource.RATIOS:
-    active_ds = derived_ratio_ds
+    filtered_measure_ds = derived_ratio_ds
     active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'endpoint'
 else:
-    active_ds = dollar_level_ds
+    filtered_measure_ds = dollar_level_ds
     active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'value'
+
+type_orgs = sorted(set(type_entities) & set(filtered_measure_ds.coords['organization'].values))
+active_ds = filtered_measure_ds.sel(organization=type_orgs)
 
 aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
 
 if measure_source != MeasureSource.RATIOS:
-    normalized_ds = _normalize_dollar_ds(dollar_level_ds, normalization)
+    full_normalized_ds = _normalize_dollar_ds(filtered_measure_ds, normalization)
+    normalized_ds = full_normalized_ds.sel(organization=type_orgs)
     agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
 
 #######################################################################################################
@@ -175,7 +182,7 @@ with chart_col:
 
 st.header('Data Exploration')
 
-def _sel_series(da, name, decimals=2):
+def _sel_series(da, name, decimals=3):
     return da.to_series().rename(name).round(decimals)
 
 _, col = st.columns([7.5, 1])
@@ -193,12 +200,14 @@ hospital_vals = _sel_series(
 
 if measure_source != MeasureSource.RATIOS:
     extra_cols = [
-        _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}', decimals=2),
+        _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}'),
+        *([_sel_series(full_normalized_ds[active_var].sel(organization=parent_system, state=selected_state, measure=table_measures, year=selected_year), parent_system)] if parent_system else []),
         _sel_series(agg_norm_ds['mean'].sel(population='total', measure=table_measures, year='Total'), f'Population / {normalization}'),
         _sel_series(agg_norm_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), f'Failed / {normalization}'),
     ]
 else:
     extra_cols = [
+        *([_sel_series(filtered_measure_ds[active_var].sel(organization=parent_system, state=selected_state, measure=table_measures, year=selected_year), parent_system)] if parent_system else []),
         _sel_series(aggregate_ds['mean'].sel(population='total', measure=table_measures, year='Total'), 'Population Mean'),
         _sel_series(aggregate_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), 'Failed Mean'),
     ]
@@ -215,6 +224,37 @@ if measure_source != MeasureSource.RATIOS:
 else:
     st.dataframe(table_df, use_container_width=True)
 
+
+###### System Hospital Breakdown ######
+
+if hospital_or_system == 'System':
+    system_hospitals = sorted(SYSTEMS_TO_HOSPITALS_MAP.get((selected_entity, selected_state), set()))
+    available_hospitals = [h for h in system_hospitals if h in filtered_measure_ds.coords['organization'].values]
+
+    if available_hospitals:
+        st.subheader(f'Hospitals in {selected_entity} — {selected_measure}')
+        raw_vals = _sel_series(
+            filtered_measure_ds[active_var].sel(
+                organization=available_hospitals, state=selected_state, measure=selected_measure, year=selected_year
+            ),
+            'Value',
+        )
+
+        if measure_source != MeasureSource.RATIOS:
+            norm_col = f'/ {normalization}'
+            norm_vals = _sel_series(
+                full_normalized_ds[active_var].sel(
+                    organization=available_hospitals, state=selected_state, measure=selected_measure, year=selected_year
+                ),
+                norm_col,
+            )
+            hospital_table = raw_vals.to_frame().join(norm_vals)
+            styled = hospital_table.style.format({'Value': '${:,.0f}', norm_col: '{:.1%}'})
+        else:
+            hospital_table = raw_vals.to_frame()
+            styled = hospital_table.style
+
+        st.dataframe(styled, use_container_width=True)
 
 ###### Data Dump ######
 
