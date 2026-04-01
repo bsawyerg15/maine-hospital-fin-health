@@ -42,6 +42,7 @@ DERIVE_RATIOS: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'derive_ratios.csv')
 )
 DERIVE_RATIOS['Multiplier'] = DERIVE_RATIOS['Multiplier'].fillna(1.0).astype(float)
+DERIVE_RATIOS['Optional?'] = DERIVE_RATIOS['Optional?'].fillna(False).astype(bool)
 
 #######################################################################################################
 # Entity Metadata

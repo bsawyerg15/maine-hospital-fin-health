@@ -22,17 +22,22 @@ def derive_ratios(da: xr.DataArray) -> xr.DataArray:
     ratio_slices = []
 
     for ratio_name, group in DERIVE_RATIOS.groupby('Measure'):
-        if not all(m in available for m in group['Sub-Measure']):
+        required = group[~group['Optional?']]['Sub-Measure']
+        if not all(m in available for m in required):
             continue
 
         num_group = group[group['Numerator or Denominator'] == 'Numerator']
         den_group = group[group['Numerator or Denominator'] == 'Denominator']
 
         def component_sum(sub_group):
-            terms = [
-                da.sel(measure=row['Sub-Measure']) * row['Multiplier']
-                for _, row in sub_group.iterrows()
-            ]
+            terms = []
+            for _, row in sub_group.iterrows():
+                if row['Optional?'] and row['Sub-Measure'] not in available:
+                    continue
+                term = da.sel(measure=row['Sub-Measure']) * row['Multiplier']
+                if row['Optional?']:
+                    term = term.fillna(0)
+                terms.append(term)
             return reduce(lambda a, b: a + b, terms)
 
         ratio = component_sum(num_group) / component_sum(den_group)

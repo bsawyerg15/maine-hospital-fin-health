@@ -37,17 +37,25 @@ def calc_systems_from_hospitals(df: pd.DataFrame, state: str) -> pd.DataFrame:
     for (system, sys_state), hospitals in SYSTEMS_TO_HOSPITALS_MAP.items():
         if sys_state != state:
             continue
-        if not hospitals.issubset(hospitals_in_df):
+
+        is_non_affiliated = system == 'Non-Affiliated'
+        present_hospitals = hospitals & hospitals_in_df
+        if not is_non_affiliated and not hospitals.issubset(hospitals_in_df):
+            continue
+        if is_non_affiliated and not present_hospitals:
             continue
 
         df_members = df_hospitals[
-            df_hospitals.index.get_level_values('Organization').isin(hospitals)
+            df_hospitals.index.get_level_values('Organization').isin(
+                present_hospitals if is_non_affiliated else hospitals
+            )
         ]
 
         grouped = df_members.groupby(level=['Measure', 'Year'])
         counts = grouped['Value'].count()
         sums = grouped['Value'].sum(min_count=1)
-        sums = sums.where(counts == len(hospitals))
+        n_expected = len(present_hospitals) if is_non_affiliated else len(hospitals)
+        sums = sums.where(counts == n_expected)
 
         new_rows = sums.rename('Value').reset_index()
         new_rows['Organization'] = system
