@@ -53,9 +53,6 @@ def calc_systems_from_hospitals(df: pd.DataFrame, state: str) -> pd.DataFrame:
 
         grouped = df_members.groupby(level=['Measure', 'Year'])
         sums = grouped['Value'].sum(min_count=1)
-        if not is_non_affiliated:
-            counts = grouped['Value'].count()
-            sums = sums.where(counts == len(hospitals))
 
         new_rows = sums.rename('Value').reset_index()
         new_rows['Organization'] = system
