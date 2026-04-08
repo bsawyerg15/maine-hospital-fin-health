@@ -87,14 +87,13 @@ selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
 st.sidebar.markdown('---')
 
 selected_states = st.sidebar.multiselect(
-    'States', ['ME', 'MA'],
-    default=['ME']
+    'States', list(State), default=[State.ME], format_func=lambda s: s.value
 )
 
 hospitals_or_systems = st.sidebar.segmented_control('', options=['Hospitals', 'Systems'], default='Hospitals', label_visibility='collapsed')
 
 available_systems = {
-    f"{sys} ({state})": (sys, state)
+    f"{sys} ({state.value})": (sys, state)
     for sys, state in SYSTEMS_TO_HOSPITALS_MAP
     if state in selected_states
 }

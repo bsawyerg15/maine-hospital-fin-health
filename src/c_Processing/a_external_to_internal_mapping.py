@@ -1,8 +1,9 @@
 import pandas as pd
+from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import EXTERNAL_MAPPINGS
 
 
-def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
+def apply_external_mappings(df: pd.DataFrame, state: State) -> pd.DataFrame:
     """
     Aggregates external (as-reported) measures into standardized measures
     by summing all external measures that share the same standardized target,
@@ -15,7 +16,7 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
     Args:
         df: DataFrame with MultiIndex (Org ID, Organization Name, Measure)
             and numeric year columns.
-        state: State code to filter mappings (e.g. "MA").
+        state: State enum member to filter mappings.
 
     Returns:
         DataFrame with the same structure, with aggregated rows replacing
@@ -40,7 +41,7 @@ def apply_external_mappings(df: pd.DataFrame, state: str) -> pd.DataFrame:
         raise ValueError(
             f"Aggregation target(s) {sorted(implicit_conflicts)} already exist in the "
             f"dataframe but are not listed as external sources in external_mappings.csv "
-            f"for state '{state}'. Add them explicitly so the intent is clear."
+            f"for state '{state.value}'. Add them explicitly so the intent is clear."
         )
 
     ext_mask = df.index.get_level_values('Measure').isin(relevant_ext)

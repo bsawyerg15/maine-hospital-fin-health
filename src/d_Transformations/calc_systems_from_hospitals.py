@@ -1,8 +1,9 @@
 import pandas as pd
+from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, LINE_ITEMS
 
 
-def calc_systems_from_hospitals(df: pd.DataFrame, state: str) -> pd.DataFrame:
+def calc_systems_from_hospitals(df: pd.DataFrame, state: State) -> pd.DataFrame:
     """
     Adds health-system-level line item aggregates to a per-state hospital DataFrame.
 

@@ -14,6 +14,7 @@ streamlit run src/analysis_app.py
 
 ## Formatting
 - Always strive to use idiomatic Python
+- Prefer to use non-string types
 - By and large, all files should contain a single function with the exception being small helper functions
 
 No formal test suite or linter is configured.

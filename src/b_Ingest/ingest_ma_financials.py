@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+from a_Config.enumerations.state_enum import State
 
 
 MA_FINANCIALS_DIR = os.path.join("src", "z_Data", "Raw_Data", "MA Financials")
@@ -102,7 +103,7 @@ def clean_ma_measure_names(df: pd.DataFrame) -> pd.DataFrame:
     """
     from a_Config.global_constants import MEASURE_MAPPINGS
 
-    ma_mappings = MEASURE_MAPPINGS['MA']
+    ma_mappings = MEASURE_MAPPINGS[State.MA]
 
     new_measures = df.index.get_level_values('Measure').map(
         lambda x: ma_mappings.get(x, x)

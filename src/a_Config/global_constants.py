@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from typing import Dict
 
+from a_Config.enumerations.state_enum import State
 from a_Config.fin_statement_model_utils import (
     FINANCIAL_STATEMENT_MODEL,
     VALID_MEASURES,
@@ -19,12 +20,15 @@ ORG_MAPPINGS_ME: Dict[str, str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_renames_me.csv')
 ).set_index('As Reported')['Standardized'].to_dict()
 
-MEASURE_MAPPINGS: Dict[str, Dict[str, str]] = (
-    pd.read_csv(os.path.join(MAPPINGS_DIR, 'clean_measure_names.csv'))
-    .groupby('State')
-    .apply(lambda g: g.set_index('As Reported')['Standardized'].to_dict())
-    .to_dict()
-)
+MEASURE_MAPPINGS: Dict[State, Dict[str, str]] = {
+    State(state): mapping
+    for state, mapping in (
+        pd.read_csv(os.path.join(MAPPINGS_DIR, 'clean_measure_names.csv'))
+        .groupby('State')
+        .apply(lambda g: g.set_index('As Reported')['Standardized'].to_dict())
+        .to_dict()
+    ).items()
+}
 
 MEASURE_HIERARCHY_RENAMES: Dict[tuple[str, str], str] = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'reported_measure_hierarchy_renames.csv')
@@ -35,7 +39,8 @@ HOSPITAL_RENAMES_MA: Dict[tuple[str, int], str] = pd.read_csv(
 ).set_index(['Organization', 'Org ID'])['New Organization'].to_dict()
 
 EXTERNAL_MAPPINGS: pd.DataFrame = pd.read_csv(
-    os.path.join(MAPPINGS_DIR, 'external_mappings.csv')
+    os.path.join(MAPPINGS_DIR, 'external_mappings.csv'),
+    converters={'State': State},
 )
 
 DERIVE_RATIOS: pd.DataFrame = pd.read_csv(
@@ -48,18 +53,22 @@ DERIVE_RATIOS['Optional?'] = DERIVE_RATIOS['Optional?'].fillna(False).astype(boo
 # Entity Metadata
 #######################################################################################################
 
-HOSPITAL_METADATA: pd.DataFrame = pd.read_csv(
+_hospital_metadata_raw: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_metadata.csv')
 ).set_index(['Organization', 'State'])
+_hospital_metadata_raw.index = _hospital_metadata_raw.index.set_levels(
+    _hospital_metadata_raw.index.levels[1].map(State), level=1
+)
+HOSPITAL_METADATA: pd.DataFrame = _hospital_metadata_raw
 
-def _build_systems_map() -> Dict[tuple[str, str], set[str]]:
+def _build_systems_map() -> Dict[tuple[str, State], set[str]]:
     df = HOSPITAL_METADATA.reset_index()
     missing = df[df['Healthcare System'].isna()]['Organization'].tolist()
     if missing:
         raise ValueError(f"Organizations missing a Healthcare System: {missing}. If independent, label Non-Affiliated.")
     return df.groupby(['Healthcare System', 'State'])['Organization'].apply(set).to_dict()
 
-SYSTEMS_TO_HOSPITALS_MAP: Dict[tuple[str, str], set[str]] = _build_systems_map()
+SYSTEMS_TO_HOSPITALS_MAP: Dict[tuple[str, State], set[str]] = _build_systems_map()
 
 #######################################################################################################
 # Helper Functions

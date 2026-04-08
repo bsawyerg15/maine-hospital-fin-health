@@ -43,10 +43,6 @@ def _normalize_dollar_ds(_dollar_level_ds, normalization_measure: str):
     return normalize_measures(_dollar_level_ds, normalization_measure, vars=['value', 'ma'])
 
 
-@st.cache_data
-def _aggregate_normalized(_normalized_ds, active_var: str):
-    return calc_population_aggregates(_normalized_ds, var=active_var)
-
 
 #######################################################################################################
 # User Inputs
@@ -56,7 +52,7 @@ derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
 income_statement_items = list(get_fin_statement_descendants_and_self('Total Surplus/Deficit'))
 balance_sheet_items = list(get_fin_statement_descendants_and_self('Total Unrestricted Assets') | get_fin_statement_descendants_and_self('Total Liabilities and Equity'))
 
-selected_state = st.sidebar.selectbox('State', ['ME', 'MA'])
+selected_state = st.sidebar.selectbox('State', list(State), format_func=lambda s: s.value)
 
 hospital_or_system = st.sidebar.segmented_control('', ['Hospital', 'System'], default='System', label_visibility='collapsed')
 
@@ -71,7 +67,7 @@ selected_entity = st.sidebar.selectbox(hospital_or_system, type_entities)
 parent_system = next(
     (system for (system, state), hospitals in SYSTEMS_TO_HOSPITALS_MAP.items()
      if state == selected_state and selected_entity in hospitals),
-    None
+    None,
 ) if hospital_or_system == 'Hospital' else None
 
 measure_source = st.sidebar.radio(
@@ -125,7 +121,7 @@ aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
 if measure_source != MeasureSource.RATIOS:
     full_normalized_ds = _normalize_dollar_ds(filtered_measure_ds, normalization)
     normalized_ds = full_normalized_ds.sel(organization=type_orgs)
-    agg_norm_ds = _aggregate_normalized(normalized_ds, active_var)
+    agg_norm_ds = calc_population_aggregates(normalized_ds, var=active_var)
 
 #######################################################################################################
 # Visualizations

@@ -38,6 +38,7 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
     yf_df = year_failed.to_series().rename('year_failed').reset_index()
     df = df.merge(yf_df, on=['organization', 'state'], how='left')
     df['failed'] = df['year_failed'].notna()
+    df['state'] = df['state'].map(lambda s: s.value)
 
     hover = (
         '<b>%{customdata[0]}</b><br>'

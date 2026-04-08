@@ -1,5 +1,6 @@
 import pandas as pd
 import xarray as xr
+from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
 from b_Ingest.ingest_union import get_financials_by_state
 from c_Processing.a_external_to_internal_mapping import apply_external_mappings
@@ -12,7 +13,7 @@ def drop_non_model_measures(df: pd.DataFrame) -> pd.DataFrame:
     return df[mask]
 
 
-def process_state_input_df(state, input_df=None) -> pd.DataFrame:
+def process_state_input_df(state: State, input_df=None) -> pd.DataFrame:
     """
     Runs the primary processing pipeline for one state.
 
@@ -44,7 +45,7 @@ def process_state_input_df(state, input_df=None) -> pd.DataFrame:
     return df
 
 
-def create_full_underived_df(states: list) -> pd.DataFrame:
+def create_full_underived_df(states: list[State]) -> pd.DataFrame:
     """
     Processes all states and concatenates into a single DataFrame.
 

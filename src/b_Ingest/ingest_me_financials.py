@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import (
     ORG_MAPPINGS_ME,
     MEASURE_MAPPINGS,
@@ -42,7 +43,7 @@ def clean_financial_input_df(df: pd.DataFrame) -> pd.DataFrame:
 
     # Map hospital and measure names using global mappings
     hospital_map = ORG_MAPPINGS_ME
-    measure_map = MEASURE_MAPPINGS['ME']
+    measure_map = MEASURE_MAPPINGS[State.ME]
 
     new_hospitals = df.index.get_level_values(0).map(lambda x: hospital_map.get(x, x))
     new_measures = df.index.get_level_values(1).map(lambda x: measure_map.get(x, x))
