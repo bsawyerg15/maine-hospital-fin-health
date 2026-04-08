@@ -51,8 +51,8 @@ def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_
 
 
 @st.cache_data
-def _cached_r2_table(states: tuple, num_years_ma: int, year_begin, year_end, x_measure: str, measures: tuple, y_lag: int):
-    _, _, interface_ds = _build_datasets(states, num_years_ma, year_begin, year_end)
+def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year_begin, year_end, x_measure: str, measures: tuple, y_lag: int):
+    _, _, interface_ds = _build_datasets(states, num_years_ma, entities, year_begin, year_end)
     return calc_r2_table(interface_ds, x_measure, list(measures), y_lag=y_lag)
 
 
@@ -276,10 +276,10 @@ with col:
                 .format({'Last R²': '{:.2f}', 'MA R²': '{:.2f}'}))
 
     with st.expander("R² vs Ratios", expanded=True):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(derived_ratios), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), y_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Income Statement Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(income_statement_items), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), y_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, year_begin, year_end, selected_measure, tuple(balance_sheet_items), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), y_lag)), hide_index=True, use_container_width=True)
