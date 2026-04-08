@@ -3,6 +3,7 @@ import pandas as pd
 from typing import Dict
 
 from a_Config.enumerations.state_enum import State
+from a_Config.enumerations.hospital_enum import Hospital, HealthSystem
 from a_Config.fin_statement_model_utils import (
     FINANCIAL_STATEMENT_MODEL,
     VALID_MEASURES,
@@ -57,18 +58,21 @@ _hospital_metadata_raw: pd.DataFrame = pd.read_csv(
     os.path.join(MAPPINGS_DIR, 'hospital_metadata.csv')
 ).set_index(['Organization', 'State'])
 _hospital_metadata_raw.index = _hospital_metadata_raw.index.set_levels(
+    _hospital_metadata_raw.index.levels[0].map(Hospital), level=0
+).set_levels(
     _hospital_metadata_raw.index.levels[1].map(State), level=1
 )
 HOSPITAL_METADATA: pd.DataFrame = _hospital_metadata_raw
 
-def _build_systems_map() -> Dict[tuple[str, State], set[str]]:
+def _build_systems_map() -> Dict[tuple[HealthSystem, State], set[Hospital]]:
     df = HOSPITAL_METADATA.reset_index()
     missing = df[df['Healthcare System'].isna()]['Organization'].tolist()
     if missing:
         raise ValueError(f"Organizations missing a Healthcare System: {missing}. If independent, label Non-Affiliated.")
+    df['Healthcare System'] = df['Healthcare System'].map(HealthSystem)
     return df.groupby(['Healthcare System', 'State'])['Organization'].apply(set).to_dict()
 
-SYSTEMS_TO_HOSPITALS_MAP: Dict[tuple[str, State], set[str]] = _build_systems_map()
+SYSTEMS_TO_HOSPITALS_MAP: Dict[tuple[HealthSystem, State], set[Hospital]] = _build_systems_map()
 
 #######################################################################################################
 # Helper Functions

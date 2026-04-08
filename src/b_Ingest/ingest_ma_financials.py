@@ -2,6 +2,7 @@ import os
 import re
 import pandas as pd
 from a_Config.enumerations.state_enum import State
+from a_Config.enumerations.hospital_enum import Hospital
 
 
 MA_FINANCIALS_DIR = os.path.join("src", "z_Data", "Raw_Data", "MA Financials")
@@ -48,6 +49,7 @@ def transpose_to_hospital_measure(df: pd.DataFrame, year: int) -> pd.DataFrame:
         value_name='Value',
     )
     df_long['Measure'] = df_long['Measure'].str.strip()
+    df_long['Organization'] = df_long['Organization'].map(Hospital)
     df_long['Year'] = year
     return df_long.set_index(['Organization', 'Measure', 'Year'])
 
