@@ -1,19 +1,20 @@
 import streamlit as st
 import xarray as xr
+from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
-from e_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
+from f_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
 from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
 from e_Data_Pipelines.change_pipeline import run_change_pipeline, calc_pct_changes
-from e_Visualizations.failed_histogram import plot_failed_histogram
-from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
-from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
-from e_Visualizations.measure_scatter import plot_measure_scatter
-from e_Visualizations.r2_table import calc_r2_table
-from e_Visualizations.measure_comparison_table import calc_measure_comparison_table
-from e_Visualizations.hospitals_per_measure_table import hospitals_per_measure_table
+from g_Visualizations.failed_histogram import plot_failed_histogram
+from g_Visualizations.mean_bar_charts import plot_mean_bar_chart
+from g_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
+from g_Visualizations.measure_scatter import plot_measure_scatter
+from g_Visualizations.r2_table import calc_r2_table
+from g_Visualizations.measure_comparison_table import calc_measure_comparison_table
+from g_Visualizations.hospitals_per_measure_table import hospitals_per_measure_table
 
 
 st.set_page_config(
@@ -62,16 +63,16 @@ def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year
 
 ###### Measure Configs #######
 
-ratios_or_changes = MeasureSource(
+measure_source = MeasureSource(
     st.sidebar.radio('Measure Source', [e.value for e in MeasureSource])
 )
 
-use_ratios = ratios_or_changes == MeasureSource.RATIOS
+use_ratios = measure_source == MeasureSource.RATIOS
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
 income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
 balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
-match ratios_or_changes:
+match measure_source:
     case MeasureSource.RATIOS:
         measure_options = derived_ratios
     case MeasureSource.INCOME_STATEMENT:
@@ -81,6 +82,11 @@ match ratios_or_changes:
 all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
+
+change_or_level = ChangeOrLevel(
+    st.sidebar.segmented_control('', options=[e.value for e in ChangeOrLevel], 
+                                               default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed')
+)
 
 ###### Entity Configs #######
 

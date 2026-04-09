@@ -8,9 +8,9 @@ from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underive
 from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
 from e_Data_Pipelines.dollar_level_pipeline import run_dollar_level_pipeline
 from d_Transformations.c_normalize_measures import normalize_measures
-from e_Aggregations.aggregations import calc_population_aggregates
-from e_Visualizations.hospital_time_series import plot_hospital_time_series
-from e_Visualizations.aggrid_utils import create_hierarchical_aggrid, _tickformat_to_js
+from f_Aggregations.aggregations import calc_population_aggregates
+from g_Visualizations.hospital_time_series import plot_hospital_time_series
+from g_Visualizations.aggrid_utils import create_hierarchical_aggrid, _tickformat_to_js
 
 st.set_page_config(
     page_title="Individual Hospital Analysis",
