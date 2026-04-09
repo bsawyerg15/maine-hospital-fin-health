@@ -50,6 +50,7 @@ def calc_aggregates(ds: xr.Dataset, var: str, change_type: ChangeType = ChangeTy
     return xr.concat([per_year_ds, total_ds], dim=year_dim)
 
 
+# TODO: refactor this to take a list of vars. should only have one agg ds
 def calc_population_aggregates(ds: xr.Dataset, var: str, change_type: ChangeType = ChangeType.ARITHMETIC) -> xr.Dataset:
     """
     Runs calc_aggregates for three populations and returns them combined along
