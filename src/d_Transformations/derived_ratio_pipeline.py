@@ -1,6 +1,6 @@
 import xarray as xr
 from d_Transformations.derived_ratios import derive_ratios
-from d_Transformations.moving_average import take_moving_average
+from d_Transformations.a_take_moving_average import take_moving_average
 
 
 def run_derived_ratio_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:

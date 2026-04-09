@@ -1,6 +1,7 @@
 import xarray as xr
+from a_Config.enumerations.change_type_enum import ChangeType
 from d_Transformations.calc_changes import calc_period_over_period_change
-from d_Transformations.moving_average import take_geometric_moving_average
+from d_Transformations.a_take_moving_average import take_moving_average
 
 
 def run_change_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
@@ -26,7 +27,7 @@ def run_change_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
     """
     change_ds = calc_period_over_period_change(ds)
     pct_da = change_ds['pct_change_value']
-    ma_da = take_geometric_moving_average(pct_da, ma_years)
+    ma_da = take_moving_average(pct_da, ma_years, ChangeType.GEOMETRIC)
 
     return xr.Dataset(
         {'endpoint': pct_da, 'ma': ma_da},

@@ -1,6 +1,6 @@
 import xarray as xr
 from a_Config.global_constants import ALL_RATIOS
-from d_Transformations.moving_average import take_moving_average
+from d_Transformations.a_take_moving_average import take_moving_average
 
 
 def run_dollar_level_pipeline(underived_ds: xr.Dataset, ma_years: int) -> xr.Dataset:
