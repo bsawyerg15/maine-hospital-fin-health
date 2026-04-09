@@ -3,7 +3,7 @@ import xarray as xr
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
-from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
+from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
 from d_Transformations.change_pipeline import run_change_pipeline, calc_period_over_period_change

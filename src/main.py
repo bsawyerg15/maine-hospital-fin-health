@@ -5,8 +5,8 @@ from b_Ingest.ingest_me_financials import create_combined_me_financial_df
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, GridUpdateMode
 from a_Config.global_constants import FINANCIAL_STATEMENT_MODEL
 from e_Visualizations.aggrid_utils import create_hierarchical_aggrid
-from c_Processing.b_sum_of_children import calculate_residuals
-from c_Processing.c_main_data_pipeline import process_financial_df
+from c_Fin_Statement_Processing.c_add_imputed_sum_of_children_rows import calculate_residuals
+from c_Fin_Statement_Processing.e_main_data_pipeline import process_financial_df
 from d_Transformations.derived_ratios import derive_ratios
 
 

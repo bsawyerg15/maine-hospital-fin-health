@@ -3,9 +3,9 @@ import xarray as xr
 from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
 from b_Ingest.ingest_union import get_financials_by_state
-from c_Processing.a_external_to_internal_mapping import apply_external_mappings
-from c_Processing.b_sum_of_children import add_computed_parent_rows
-from d_Transformations.calc_systems_from_hospitals import calc_systems_from_hospitals
+from c_Fin_Statement_Processing.a_external_to_internal_mapping import apply_external_mappings
+from c_Fin_Statement_Processing.c_add_imputed_sum_of_children_rows import add_imputed_sum_of_children_rows
+from c_Fin_Statement_Processing.d_impute_systems_from_hospitals import impute_systems_from_hospitals
 
 
 def drop_non_model_measures(df: pd.DataFrame) -> pd.DataFrame:
@@ -25,24 +25,35 @@ def process_state_input_df(state: State, input_df=None) -> pd.DataFrame:
         input_df = get_financials_by_state(state)
 
     df = apply_external_mappings(input_df, state)
-    df = drop_non_model_measures(df)
-    df = add_computed_parent_rows(df)
-    df = calc_systems_from_hospitals(df, state)
 
-    df['State'] = state
-    df = df.set_index('State', append=True).reorder_levels(
+    #######################################################################################################
+    # Internal Domain
+    #######################################################################################################
+
+    internal_domain_no_imputation_df = drop_non_model_measures(df)
+
+    internal_domain_imputation_within_entity_df = add_imputed_sum_of_children_rows(internal_domain_no_imputation_df)
+
+    internal_domain_df = impute_systems_from_hospitals(internal_domain_imputation_within_entity_df, state)
+
+    #######################################################################################################
+    # Augment with Metadata
+    #######################################################################################################
+    
+    internal_domain_df['State'] = state
+    internal_domain_df = internal_domain_df.set_index('State', append=True).reorder_levels(
         ['Organization', 'State', 'Measure', 'Year']
     )
 
     _year_failed = (
-        df.index.droplevel(['Measure', 'Year'])
+        internal_domain_df.index.droplevel(['Measure', 'Year'])
         .map(HOSPITAL_METADATA['Year Failed'])
     )
-    df['Year Failed'] = _year_failed.map(
+    internal_domain_df['Year Failed'] = _year_failed.map(
         lambda x: str(int(x)) if pd.notna(x) else None
     )
 
-    return df
+    return internal_domain_df
 
 
 def create_full_underived_df(states: list[State]) -> pd.DataFrame:

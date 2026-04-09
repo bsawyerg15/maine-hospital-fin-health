@@ -4,7 +4,7 @@ from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
-from c_Processing.c_main_data_pipeline import create_full_underived_df, to_dataset
+from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
 from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
 from d_Transformations.dollar_level_pipeline import run_dollar_level_pipeline
 from d_Transformations.normalize_measures import normalize_measures
