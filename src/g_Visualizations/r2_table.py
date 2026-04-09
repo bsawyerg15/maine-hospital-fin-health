@@ -1,6 +1,10 @@
+from altair import Y
 import numpy as np
 import pandas as pd
 import xarray as xr
+
+from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
+from a_Config.enumerations.interface_fields_enum import InterfaceFields
 
 
 def _r2(x: pd.Series, y: pd.Series) -> float:
@@ -19,17 +23,19 @@ def calc_r2_table(
     interface_ds: xr.Dataset,
     selected_measure: str,
     measures: list[str],
-    y_lag: int = 0,
+    x_change_or_level: ChangeOrLevel,
+    y_change_or_level: ChangeOrLevel,
+    y_lag: int = 0
 ) -> pd.DataFrame:
     """
     For each measure in *measures*, compute the R² of *selected_measure* vs
-    that measure using both the ``last`` and ``ma`` data variables of
+    that measure using both the ``InterfaceFields.ENDPOINT`` and ``InterfaceFields.MA`` data variables of
     *interface_ds*.
 
     Parameters
     ----------
     interface_ds : xr.Dataset
-        Dataset with data variables ``last`` and ``ma``, each having dims
+        Dataset with data variables ``InterfaceFields.ENDPOINT`` and ``InterfaceFields.MA``, each having dims
         ``(organization, state, measure, year)``.
     selected_measure : str
         The reference measure (x-axis in each bivariate regression).
@@ -51,8 +57,8 @@ def calc_r2_table(
         return pd.DataFrame(columns=['Measure', 'Last R²', 'MA R²'])
     measures = [m for m in measures if m in available]
 
-    last_x_da = interface_ds['last'].sel(measure=selected_measure)
-    ma_x_da = interface_ds['ma'].sel(measure=selected_measure)
+    last_x_da = interface_ds[InterfaceFields.ENDPOINT].sel(measure=selected_measure, change_or_level=x_change_or_level)
+    ma_x_da = interface_ds[InterfaceFields.MA].sel(measure=selected_measure, change_or_level=x_change_or_level)
     if y_lag != 0:
         last_x_da = last_x_da.shift(year=y_lag)
         ma_x_da = ma_x_da.shift(year=y_lag)
@@ -61,8 +67,8 @@ def calc_r2_table(
 
     rows = []
     for m in measures:
-        last_y = interface_ds['last'].sel(measure=m).to_series()
-        ma_y = interface_ds['ma'].sel(measure=m).to_series()
+        last_y = interface_ds[InterfaceFields.ENDPOINT].sel(measure=m, change_or_level=y_change_or_level).to_series()
+        ma_y = interface_ds['ma'].sel(measure=m, change_or_level=y_change_or_level).to_series()
         rows.append({
             'Measure': m,
             'Last R²': _r2(last_x, last_y),

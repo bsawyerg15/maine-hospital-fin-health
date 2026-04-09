@@ -6,9 +6,10 @@ from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYS
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
+from e_Data_Pipelines.d_run_combined_pipeline import run_combined_pipeline
 from f_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
-from e_Data_Pipelines.run_level_pipeline import run_level_pipeline
-from e_Data_Pipelines.change_pipeline import run_change_pipeline, calc_pct_changes
+from e_Data_Pipelines.b_run_level_pipeline import run_level_pipeline
+from e_Data_Pipelines.c_change_pipeline import run_change_pipeline, calc_pct_changes
 from g_Visualizations.failed_histogram import plot_failed_histogram
 from g_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from g_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
@@ -41,22 +42,16 @@ def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_
         year_index = df.index.get_level_values('Year').astype(int)
         df = df[(year_index >= year_begin) & (year_index <= year_end)]
     underived_ds = to_dataset(df)
-    # derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
     level_ds = run_level_pipeline(underived_ds, num_years_ma)
-    # underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
     change_ds = run_change_pipeline(level_ds, num_years_ma)
-    # interface_ds = xr.Dataset({
-    #     'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
-    #     'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
-    #     'year_failed': derived_ratio_ds['year_failed'],
-    # })
-    return level_ds, change_ds
+    combined_df = run_combined_pipeline(level_ds, change_ds)
+    return level_ds, change_ds, combined_df
 
 
 @st.cache_data
-def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year_begin, year_end, x_measure: str, measures: tuple, y_lag: int):
-    _, _, interface_ds = _build_datasets(states, num_years_ma, entities, year_begin, year_end)
-    return calc_r2_table(interface_ds, x_measure, list(measures), y_lag=y_lag)
+def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year_begin, year_end, x_measure: str, measures: tuple, x_change_or_level: ChangeOrLevel, y_change_or_level: ChangeOrLevel, y_lag: int):
+    _, _, combined_ds = _build_datasets(states, num_years_ma, entities, year_begin, year_end)
+    return calc_r2_table(combined_ds, x_measure, list(measures), x_change_or_level, y_change_or_level, y_lag=y_lag)
 
 
 #######################################################################################################
@@ -143,7 +138,7 @@ num_years_ma = st.sidebar.number_input(
 #######################################################################################################
 
 states_key = tuple(selected_states)
-level_ds, change_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
+level_ds, change_ds, combined_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
 
 is_use_levels = change_or_level == ChangeOrLevel.LEVEL
 active_ds = level_ds if is_use_levels else change_ds
@@ -158,8 +153,15 @@ failed_aggregate_ds = calc_aggregates(failed_ds, last_col, change_type, year_dim
 failed_ma_aggregate_ds = calc_aggregates(failed_ds, ma_col, change_type, year_dim='relative_year')
 
 #######################################################################################################
-# Viz
+# Viz Helpers
 #######################################################################################################
+
+if is_use_levels:
+    change_in_text = ""
+elif use_ratios:
+    change_in_text = "Change in "
+else:
+    change_in_text = "% Change in "
 
 st.title("Understanding the financial characteristics of failed hospitals.")
 
@@ -209,7 +211,7 @@ with col1:
                 (failed_ma_mean, failed_ma_std),
             ],
             ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
-            title=f'Mean {selected_measure} +/- 1 Std. Dev.',
+            title=f'Mean {change_in_text}{selected_measure} +/- 1 Std. Dev.',
             measure=selected_measure,
         )
     )
@@ -224,14 +226,14 @@ with col2:
                 non_failed_mean,
                 non_failed_std_dev,
                 yaxis_title=selected_measure,
-                title=f'Lead Up to Failure vs Population: {selected_measure}',
+                title=f'Lead Up to Failure vs Population: {change_in_text}{selected_measure}',
                 measure=selected_measure,
             )
         )
     else:
         st.plotly_chart(
             plot_cum_leadup_to_failure(
-                failed_ds['cum_pct_change'].sel(measure=selected_measure),
+                failed_ds[InterfaceFields.CUM_CHANGE].sel(measure=selected_measure),
                 non_failed_mean,
                 non_failed_std_dev,
                 yaxis_title=f'{selected_measure}\n(Cum. % Change)',
@@ -266,18 +268,19 @@ _, col, side_col = st.columns([margin, 1, margin])
 with side_col:
     scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
     endpoint_or_ma = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
+    y_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
     y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
-# with col:
-#     scatter_da = interface_ds['last'] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else interface_ds['ma']
-#     y_da = scatter_da.sel(measure=scatter_measure_y)
-#     if y_lag != 0:
-#         y_da = y_da.shift(year=y_lag)
-#     st.plotly_chart(plot_measure_scatter(
-#         scatter_da.sel(measure=selected_measure),
-#         y_da,
-#         interface_ds['year_failed'],
-#         y_lag=y_lag,
-#     ))
+with col:
+    scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else combined_ds[InterfaceFields.MA]
+    y_da = scatter_da.sel(measure=scatter_measure_y, change_or_level=y_change_or_level)
+    if y_lag != 0:
+        y_da = y_da.shift(year=y_lag)
+    st.plotly_chart(plot_measure_scatter(
+        scatter_da.sel(measure=selected_measure, change_or_level=change_or_level),
+        y_da,
+        combined_ds[InterfaceFields.YEAR_FAILED],
+        y_lag=y_lag,
+    ))
 
     def _styled(df):
         return (df.style
@@ -285,10 +288,10 @@ with side_col:
                 .format({'Last R²': '{:.2f}', 'MA R²': '{:.2f}'}))
 
     with st.expander("R² vs Ratios", expanded=True):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Income Statement Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
