@@ -2,7 +2,7 @@ import numpy as np
 import xarray as xr
 
 
-def calc_period_over_period_change(ds: xr.Dataset, var: str, ma_years: int) -> xr.Dataset:
+def calc_pct_changes(ds: xr.Dataset, var: str, ma_years: int) -> xr.Dataset:
     """
     Computes period-over-period changes for a single variable.
 

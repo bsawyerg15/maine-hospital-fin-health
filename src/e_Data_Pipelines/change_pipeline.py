@@ -1,6 +1,6 @@
 import xarray as xr
 from a_Config.enumerations.change_type_enum import ChangeType
-from d_Transformations.calc_changes import calc_period_over_period_change
+from d_Transformations.d_calc_pct_changes import calc_pct_changes
 from d_Transformations.a_take_moving_average import take_moving_average
 
 
@@ -25,7 +25,7 @@ def run_change_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
         variables, both with shape (organization, state, measure, year), plus
         the 'year_failed' coordinate carried over from the input.
     """
-    change_ds = calc_period_over_period_change(ds)
+    change_ds = calc_pct_changes(ds)
     pct_da = change_ds['pct_change_value']
     ma_da = take_moving_average(pct_da, ma_years, ChangeType.GEOMETRIC)
 

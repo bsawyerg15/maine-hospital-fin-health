@@ -2,7 +2,7 @@ import pandas as pd
 import xarray as xr
 from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
-from b_Ingest.ingest_union import get_financials_by_state
+from b_Ingest.z_get_financials_by_state import get_financials_by_state
 from c_Fin_Statement_Processing.a_external_to_internal_mapping import apply_external_mappings
 from c_Fin_Statement_Processing.c_add_imputed_sum_of_children_rows import add_imputed_sum_of_children_rows
 from c_Fin_Statement_Processing.d_impute_systems_from_hospitals import impute_systems_from_hospitals

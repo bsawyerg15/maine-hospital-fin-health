@@ -8,7 +8,7 @@ def derive_ratios(da: xr.DataArray) -> xr.DataArray:
     Computes derived financial ratio measures and returns a DataArray
     containing only the derived ratios.
 
-    NaN propagates naturally through arithmetic: if any component is NaN
+    NaN propagates naturally through arithmetic: if any non-optional component is NaN
     for a given (organization, state, year), the ratio is NaN.
 
     Args:

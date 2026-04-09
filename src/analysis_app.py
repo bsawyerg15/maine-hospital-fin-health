@@ -4,9 +4,9 @@ from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYS
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
-from d_Transformations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
-from d_Transformations.derived_ratio_pipeline import run_derived_ratio_pipeline
-from d_Transformations.change_pipeline import run_change_pipeline, calc_period_over_period_change
+from e_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
+from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
+from e_Data_Pipelines.change_pipeline import run_change_pipeline, calc_pct_changes
 from e_Visualizations.failed_histogram import plot_failed_histogram
 from e_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from e_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
@@ -41,7 +41,7 @@ def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_
     underived_ds = to_dataset(df)
     derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
     dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
-    change_ds = calc_period_over_period_change(dollar_level_ds, 'value', num_years_ma)
+    change_ds = calc_pct_changes(dollar_level_ds, 'value', num_years_ma)
     interface_ds = xr.Dataset({
         'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
         'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
