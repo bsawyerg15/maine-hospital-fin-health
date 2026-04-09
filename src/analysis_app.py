@@ -1,12 +1,13 @@
 import streamlit as st
 import xarray as xr
 from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
+from a_Config.enumerations.interface_fields_enum import InterfaceFields
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
 from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
 from f_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
-from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
+from e_Data_Pipelines.run_level_pipeline import run_level_pipeline
 from e_Data_Pipelines.change_pipeline import run_change_pipeline, calc_pct_changes
 from g_Visualizations.failed_histogram import plot_failed_histogram
 from g_Visualizations.mean_bar_charts import plot_mean_bar_chart
@@ -40,15 +41,16 @@ def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_
         year_index = df.index.get_level_values('Year').astype(int)
         df = df[(year_index >= year_begin) & (year_index <= year_end)]
     underived_ds = to_dataset(df)
-    derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
-    dollar_level_ds = underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
-    change_ds = calc_pct_changes(dollar_level_ds, 'value', num_years_ma)
-    interface_ds = xr.Dataset({
-        'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
-        'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
-        'year_failed': derived_ratio_ds['year_failed'],
-    })
-    return derived_ratio_ds, change_ds, interface_ds
+    # derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
+    level_ds = run_level_pipeline(underived_ds, num_years_ma)
+    # underived_ds.sel(measure=[m for m in underived_ds.coords['measure'].values if m not in ALL_RATIOS])
+    change_ds = run_change_pipeline(level_ds, num_years_ma)
+    # interface_ds = xr.Dataset({
+    #     'last':        xr.concat([derived_ratio_ds['endpoint'], change_ds['pct_change']], dim='measure'),
+    #     'ma':          xr.concat([derived_ratio_ds['ma'], change_ds['ma_pct_change']], dim='measure'),
+    #     'year_failed': derived_ratio_ds['year_failed'],
+    # })
+    return level_ds, change_ds
 
 
 @st.cache_data
@@ -141,12 +143,13 @@ num_years_ma = st.sidebar.number_input(
 #######################################################################################################
 
 states_key = tuple(selected_states)
-derived_ratio_ds, change_ds, interface_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
+level_ds, change_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
 
-active_ds = derived_ratio_ds if use_ratios else change_ds
+is_use_levels = change_or_level == ChangeOrLevel.LEVEL
+active_ds = level_ds if is_use_levels else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
-last_col = 'endpoint' if use_ratios else 'pct_change'
-ma_col = 'ma' if use_ratios else 'ma_pct_change'
+last_col = InterfaceFields.ENDPOINT if is_use_levels else InterfaceFields.CHANGE
+ma_col = InterfaceFields.MA if is_use_levels else InterfaceFields.MA_OF_CHANGE
 change_type = ChangeType.ARITHMETIC if use_ratios else ChangeType.GEOMETRIC
 
 aggregate_ds = calc_population_aggregates(active_ds, var=last_col, change_type=change_type)
@@ -172,8 +175,8 @@ _, col, side_col = st.columns([0.1, 1, margin])
 with side_col:
     is_use_ma_for_hist = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed') == MovingAvgOrEndpoint.MOVING_AVG.value
 
-non_failed_mean = float(aggregate_ds['mean'].sel(population='non_failed', measure=selected_measure, year='Total'))
-non_failed_std_dev = float(aggregate_ds['std'].sel(population='non_failed', measure=selected_measure, year='Total'))
+non_failed_mean = float(aggregate_ds[InterfaceFields.MEAN].sel(population='non_failed', measure=selected_measure, year='Total'))
+non_failed_std_dev = float(aggregate_ds[InterfaceFields.STD].sel(population='non_failed', measure=selected_measure, year='Total'))
 
 with col:
     lb, ub = (None, None) if use_ratios else (-1, 3)
@@ -194,10 +197,10 @@ with col:
 col1, _, col2 = st.columns([1, 0.2, 2])
 
 with col1:
-    failed_year_mean = float(failed_aggregate_ds['mean'].sel(measure=selected_measure, relative_year=0))
-    failed_year_std = float(failed_aggregate_ds['std'].sel(measure=selected_measure, relative_year=0))
-    failed_ma_mean = float(failed_ma_aggregate_ds['mean'].sel(measure=selected_measure, relative_year=-1))
-    failed_ma_std = float(failed_ma_aggregate_ds['std'].sel(measure=selected_measure, relative_year=-1))
+    failed_year_mean = float(failed_aggregate_ds[InterfaceFields.MEAN].sel(measure=selected_measure, relative_year=0))
+    failed_year_std = float(failed_aggregate_ds[InterfaceFields.STD].sel(measure=selected_measure, relative_year=0))
+    failed_ma_mean = float(failed_ma_aggregate_ds[InterfaceFields.MEAN].sel(measure=selected_measure, relative_year=-1))
+    failed_ma_std = float(failed_ma_aggregate_ds[InterfaceFields.STD].sel(measure=selected_measure, relative_year=-1))
     st.plotly_chart(
         plot_mean_bar_chart(
             [
@@ -264,17 +267,17 @@ with side_col:
     scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
     endpoint_or_ma = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
     y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
-with col:
-    scatter_da = interface_ds['last'] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else interface_ds['ma']
-    y_da = scatter_da.sel(measure=scatter_measure_y)
-    if y_lag != 0:
-        y_da = y_da.shift(year=y_lag)
-    st.plotly_chart(plot_measure_scatter(
-        scatter_da.sel(measure=selected_measure),
-        y_da,
-        interface_ds['year_failed'],
-        y_lag=y_lag,
-    ))
+# with col:
+#     scatter_da = interface_ds['last'] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else interface_ds['ma']
+#     y_da = scatter_da.sel(measure=scatter_measure_y)
+#     if y_lag != 0:
+#         y_da = y_da.shift(year=y_lag)
+#     st.plotly_chart(plot_measure_scatter(
+#         scatter_da.sel(measure=selected_measure),
+#         y_da,
+#         interface_ds['year_failed'],
+#         y_lag=y_lag,
+#     ))
 
     def _styled(df):
         return (df.style

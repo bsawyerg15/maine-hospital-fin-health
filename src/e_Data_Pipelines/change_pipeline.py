@@ -1,35 +1,50 @@
 import xarray as xr
-from a_Config.enumerations.change_type_enum import ChangeType
+from a_Config.enumerations.interface_fields_enum import InterfaceFields
+from a_Config.fin_statement_model_utils import ALL_RATIOS, LINE_ITEMS
 from d_Transformations.d_calc_pct_changes import calc_pct_changes
-from d_Transformations.a_take_moving_average import take_moving_average
+from d_Transformations.e_calc_arith_changes import calc_arith_changes
+
+_PCT_DROP = {'value', 'ln_value', 'ln_pct_change'}
+_ARITH_DROP = {'value'}
 
 
 def run_change_pipeline(ds: xr.Dataset, ma_years: int) -> xr.Dataset:
     """
-    Computes period-over-period percent changes and their geometric moving average.
+    Compute period-over-period changes for all measures, routing each to the
+    appropriate method based on measure type:
+      - Line items  → geometric (% change via log-differencing)
+      - Ratios      → arithmetic (absolute difference)
 
-    Pipeline order:
-    1. Compute percent change and log change for each base measure.
-    2. Compute geometric moving average of the percent changes.
-       Geometric MA is used (not arithmetic) because percent changes compound
-       multiplicatively: geometric_ma = exp(mean(ln(1 + pct_change))) - 1.
+    Returns a Dataset with dimensions (organization, state, measure, year) and
+    data variables mapped to InterfaceFields: CHANGE, MA_OF_CHANGE, CUM_CHANGE.
+    Measures not in ALL_RATIOS or LINE_ITEMS are silently excluded.
 
     Args:
-        ds: Dataset from to_dataset(), with a 'value' variable of shape
-            (organization, state, measure, year) and a 'year_failed'
-            coordinate of shape (organization, state).
-        ma_years: Rolling window size for the geometric moving average.
-
-    Returns:
-        Dataset with 'endpoint' (raw pct_change_value) and 'ma' (geometric MA)
-        variables, both with shape (organization, state, measure, year), plus
-        the 'year_failed' coordinate carried over from the input.
+        ds:       Dataset with a 'value' data variable and a 'measure' dimension.
+        ma_years: Rolling window size for the moving average of changes.
     """
-    change_ds = calc_pct_changes(ds)
-    pct_da = change_ds['pct_change_value']
-    ma_da = take_moving_average(pct_da, ma_years, ChangeType.GEOMETRIC)
+    measures = ds.coords['measure'].values.tolist()
+    ratio_measures = [m for m in measures if m in ALL_RATIOS]
+    line_item_measures = [m for m in measures if m in LINE_ITEMS]
 
-    return xr.Dataset(
-        {'endpoint': pct_da, 'ma': ma_da},
-        coords={'year_failed': ds['year_failed']},
-    )
+    parts = []
+
+    if line_item_measures:
+        pct_ds = calc_pct_changes(ds.sel(measure=line_item_measures), InterfaceFields.ENDPOINT, ma_years)
+        pct_ds = pct_ds.drop_vars(_PCT_DROP & set(pct_ds.data_vars))
+        parts.append(pct_ds.rename({
+            'pct_change': InterfaceFields.CHANGE,
+            'ma_pct_change': InterfaceFields.MA_OF_CHANGE,
+            'cum_pct_change': InterfaceFields.CUM_CHANGE,
+        }))
+
+    if ratio_measures:
+        arith_ds = calc_arith_changes(ds.sel(measure=ratio_measures), InterfaceFields.ENDPOINT, ma_years)
+        arith_ds = arith_ds.drop_vars(_ARITH_DROP & set(arith_ds.data_vars))
+        parts.append(arith_ds.rename({
+            'arith_change': InterfaceFields.CHANGE,
+            'ma_arith_change': InterfaceFields.MA_OF_CHANGE,
+            'cum_arith_change': InterfaceFields.CUM_CHANGE,
+        }))
+
+    return xr.concat(parts, dim='measure')
