@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 
-def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None, measure=None):
+def plot_mean_bar_chart(series_list, labels=None, title=None, subtitle=None, yaxis_title=None, measure=None):
     """
     Plot a bar chart of means with standard deviation error bars.
 
@@ -41,7 +41,7 @@ def plot_mean_bar_chart(series_list, labels=None, title=None, yaxis_title=None, 
         yaxis_title = f'{measure} (% Chg)' if is_pct else measure
 
     fig.update_layout(
-        title=title,
+        title=dict(text=title, subtitle=dict(text=subtitle)),
         yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure, is_pct) if measure else None),
         xaxis_title=None,
     )

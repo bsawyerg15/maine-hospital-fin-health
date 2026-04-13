@@ -147,6 +147,18 @@ elif use_ratios:
 else:
     change_in_text = "% Change in "
 
+default_title = f'{change_in_text}{selected_measure}'
+
+state_subtitle_str = ", ".join(state.value for state in selected_states)
+
+subtitle_year_begin = year_begin or int(active_ds.year.values.min())
+subtitle_year_end = year_end or int(active_ds.year.values.max())
+default_subtitle = f'{state_subtitle_str}, {subtitle_year_begin}-{subtitle_year_end}'
+
+#######################################################################################################
+# App
+#######################################################################################################
+
 st.title("Understanding the financial characteristics of failed hospitals.")
 
 #######################################################################################################
@@ -166,6 +178,7 @@ non_failed_std_dev = float(aggregate_ds[InterfaceFields.STD].sel(population='non
 
 with col:
     lb, ub = (None, None) if use_ratios else (-1, 3)
+    ma_title = f' ({num_years_ma}yma)' if is_use_ma_for_hist else ''
     st.plotly_chart(
         plot_failed_histogram(
             active_ds,
@@ -173,7 +186,9 @@ with col:
             selected_measure,
             var=(ma_col if is_use_ma_for_hist else last_col),
             ma_years=num_years_ma if is_use_ma_for_hist else None,
-            clip_lower=lb, clip_upper=ub
+            clip_lower=lb, clip_upper=ub,
+            title=f'Distribution of {default_title}{ma_title}',
+            subtitle=default_subtitle
         ),
         use_container_width=True
     )
@@ -195,7 +210,8 @@ with col1:
                 (failed_ma_mean, failed_ma_std),
             ],
             ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
-            title=f'Mean {change_in_text}{selected_measure} +/- 1 Std. Dev.',
+            title=f'Mean {default_title} +/- 1 Std. Dev.',
+            subtitle=default_subtitle,
             measure=selected_measure,
         )
     )

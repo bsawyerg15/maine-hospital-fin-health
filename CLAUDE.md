@@ -24,43 +24,56 @@ No formal test suite or linter is configured.
 The pipeline flows through alphabetically-ordered subdirectories in `src/`:
 
 ```
-b_Ingest → c_Processing → d_Transformations → e_Visualizations → Streamlit apps
+b_Ingest → c_Fin_Statement_Processing → d_Transformations → e_Data_Pipelines → f_Aggregations → g_Visualizations → Streamlit apps
 ```
 
-**Data structure transition**: Raw ingestion produces a pandas DataFrame with a MultiIndex `(Organization, State, Measure, Year)` where `Organization` can be a hospital or health system and columns `Value` / `Year Failed`. This is converted to an **xarray Dataset** at the end of `c_Processing/c_main_data_pipeline.py`, with dimensions `(organization, state, measure, year)` and data variables `value`, `endpoint`, `ma`, `pct_change_*`, `ln_change_*`. All `d_Transformations/` modules operate on xarray.
+**Data structure transition**: Raw ingestion produces a pandas DataFrame with a MultiIndex `(Organization, State, Measure, Year)` and columns `Value` / `Year Failed`. `c_Fin_Statement_Processing/e_main_data_pipeline.py` converts this to an **xarray Dataset** with dims `(organization, state, measure, year)`, one data variable `value`, and a `year_failed` coordinate. Downstream pipelines in `e_Data_Pipelines/` derive additional variables on top of this.
 
 ### Key layers
 
 **`a_Config/`** — Configuration loaded once at startup
-- `fin_statement_model.csv`: defines the financial statement measure hierarchy (parent/child relationships, negate flags)
-- `derive_ratios.csv`: rules for computing derived ratios (numerator/denominator components, multipliers)
-- `external_mappings.csv`: maps state-reported measure names → standardized internal names
-- `hospital_metadata.csv`: contains `year_failed` per hospital — the core dependent variable
-- `fin_statement_model_utils.py`: ancestor/descendant lookup functions for the measure hierarchy
-- `global_constants.py`: loads all CSVs and exposes `FINANCIAL_STATEMENT_MODEL`, `VALID_MEASURES`, `LINE_ITEMS`, `DERIVE_RATIOS`, `ALL_RATIOS`; also `get_measure_tickformat(measure)` → Plotly format string (`.1%` for Percent, `.1f` for Float)
-- `enumerations/change_type.py`: `ChangeType.ARITHMETIC` (direct mean/std, used for ratios) vs `ChangeType.GEOMETRIC` (log-transform → mean/std → expm1, used for percent changes)
+- `csv_configs/fin_statement_model.csv`: defines the financial statement measure hierarchy (parent/child relationships, negate flags)
+- `csv_configs/derive_ratios.csv`: rules for computing derived ratios (numerator/denominator components, multipliers, optional flag)
+- `csv_configs/external_mappings.csv`: maps state-reported measure names → standardized internal names
+- `csv_configs/hospital_metadata.csv`: contains `Year Failed` per hospital — the core dependent variable; also `Healthcare System` membership
+- `fin_statement_model_utils.py`: ancestor/descendant lookup functions; exposes `FINANCIAL_STATEMENT_MODEL`, `VALID_MEASURES`, `LINE_ITEMS`, `ALL_RATIOS`
+- `global_constants.py`: loads all CSVs and exposes constants including `HOSPITAL_METADATA`, `SYSTEMS_TO_HOSPITALS_MAP`, `DERIVE_RATIOS`; also `get_measure_tickformat(measure)` → Plotly format string (`.1%` for Percent, `.1f` for Float, `$,.1f` for Millions)
+- `enumerations/`: `ChangeType` (ARITHMETIC vs GEOMETRIC), `ChangeOrLevel` (LEVEL vs CHANGE), `InterfaceFields` (endpoint, ma, change, ma_of_change, cum_change, …), `State`, `Hospital`, `HealthSystem`, `Population`, `MeasureSource`
 
 **`b_Ingest/`** — Parses raw data
-- `ingest_me_financials.py`: parses Maine PDFs/CSVs; standardizes hospital and measure names
-- `ingest_ma_financials.py`: reads MA CSVs; converts wide → long format; handles dollar-string parsing
-- `ingest_union.py`: routes ingestion by state via `_STATE_DISPATCH` dict — add new states here by extending the dict and implementing a corresponding ingest function
+- `a_ingest_me_financials.py`: parses Maine PDFs/CSVs; standardizes hospital and measure names
+- `b_ingest_ma_financials.py`: reads MA CSVs; converts wide → long format; handles dollar-string parsing
+- `z_get_financials_by_state.py`: routes ingestion by state via a dispatch dict — add new states here
 
-**`c_Processing/`** — Cleaning and transformation
-- `a_external_to_internal_mapping.py`: aggregates external measures into standardized internal measures
-- `b_sum_of_children.py`: computes parent line items as sums of children per the hierarchy; only inserts a computed parent if **all** expected children are present
-- `c_main_data_pipeline.py`: orchestrates ingest → map → filter → sum-of-children → xarray conversion
+**`c_Fin_Statement_Processing/`** — Cleaning and transformation to xarray
+- `a_external_to_internal_mapping.py`: maps external measure names → standardized internal names via `external_mappings.csv`
+- `b_calculate_children_sums.py` / `c_add_imputed_sum_of_children_rows.py`: computes parent line items as sums of children per the hierarchy; only inserts a computed parent if **all** expected children are present
+- `d_impute_systems_from_hospitals.py`: aggregates hospital-level rows into health-system-level rows
+- `e_main_data_pipeline.py`: orchestrates ingest → map → sum-of-children → system imputation → xarray conversion; `load_pre_transformed_dataset()` is the public entry point (cached with `@st.cache_data`)
+- `h_calculate_residuals.py`: balance sheet residuals (sum-of-children minus parent, surfacing accounting discrepancies)
 
 **`d_Transformations/`** — Derived calculations on xarray
-- `derived_ratio_pipeline.py`: the correct order matters — (1) MA of raw measures, (2) endpoint ratios from raw, (3) MA ratios from MA of raw (so MA(num)/MA(denom), not MA(ratio))
-- `aggregations.py`: `create_failed_dataset()` filters to failed hospitals and reindexes by `relative_year` (0 = failure year, -1 = one year prior, etc.)
-- `calc_changes.py`: period-over-period % change and log change (used for Line Items analysis)
+- `a_take_moving_average.py`: rolling window MA over the year dimension
+- `b_derived_ratios.py`: computes ratio measures from line-item DataArrays (num/denom from `derive_ratios.csv`)
+- `c_normalize_measures.py`: normalizes measures
+- `d_calc_pct_changes.py` / `e_calc_arith_changes.py`: period-over-period % change and arithmetic change
 
-**`e_Visualizations/`** — Altair/Plotly chart builders called from the Streamlit apps. Use `get_measure_tickformat()` for axis formatting — never hardcode percentage vs. float format.
+**`e_Data_Pipelines/`** — Orchestrates transformations into unified xarray outputs
+- `a_dollar_level_pipeline.py`: MA of raw dollar line items → `value` + `ma`
+- `b_run_level_pipeline.py`: `run_level_pipeline(ds, ma_years)` → Dataset with `InterfaceFields.ENDPOINT` and `InterfaceFields.MA` for all measures (line items + derived ratios). Ratio order matters: derive ratios from endpoint values first, then derive MA ratios from MA values (so MA(num)/MA(denom), not MA(ratio))
+- `c_change_pipeline.py`: `run_change_pipeline(level_ds, ma_years)` → Dataset with `change`, `ma_of_change`, `cum_change`
+- `d_run_combined_pipeline.py`: `run_combined_pipeline(level_ds, change_ds)` → Dataset with a `change_or_level` dimension (ChangeOrLevel.LEVEL / ChangeOrLevel.CHANGE), normalized to `endpoint` + `ma` variables
+- `e_run_full_entity_pipeline.py`: top-level entry — calls ingest + all pipelines, returns `(level_ds, change_ds, combined_ds)`
 
-### Two Streamlit apps
+**`f_Aggregations/`**
+- `aggregations.py`: `calc_aggregates()` (mean/std per year + Total, supports GEOMETRIC mode via log1p), `calc_population_aggregates()` (splits into total/failed/non_failed populations), `create_failed_dataset()` (reindexes failed hospitals by `relative_year` where 0 = failure year), `filter_to_non_failed()`
 
-- **`analysis_app.py`**: cross-sectional view — compares distributions of failed vs. operational hospitals; controls for analysis period, years-before-failing window, states, measure type (Ratios vs. Line Items)
-- **`main.py`**: individual hospital deep-dive — hierarchical tables for ratios, income statement, balance sheet, plus balance sheet residuals (sum-of-children minus parent, surfacing accounting discrepancies)
+**`g_Visualizations/`** — Chart builders called from the Streamlit apps. Use `get_measure_tickformat()` for axis formatting — never hardcode percentage vs. float format.
+
+### Streamlit apps
+
+- **`analysis_app.py`**: cross-sectional view — compares distributions of failed vs. operational hospitals; controls for analysis period, years-before-failing window, states, measure type
+- **`main.py`** / **`individual_hospital_app.py`**: individual hospital deep-dive — hierarchical tables for ratios, income statement, balance sheet, plus balance sheet residuals
 
 ## Data
 
