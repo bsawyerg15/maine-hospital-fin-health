@@ -1,12 +1,12 @@
 import pandas as pd
 import streamlit as st
+from a_Config.enumerations.interface_fields_enum import InterfaceFields
+from a_Config.enumerations.population_enum import Population
 from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
-from c_Fin_Statement_Processing.e_main_data_pipeline import load_pre_transformed_dataset
-from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
-from e_Data_Pipelines.a_dollar_level_pipeline import run_dollar_level_pipeline
+from e_Data_Pipelines.e_run_full_entity_pipeline import run_full_entity_pipeline
 from d_Transformations.c_normalize_measures import normalize_measures
 from f_Aggregations.aggregations import calc_population_aggregates
 from g_Visualizations.hospital_time_series import plot_hospital_time_series
@@ -24,16 +24,14 @@ st.set_page_config(
 #######################################################################################################
 
 @st.cache_data
-def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset):
-    underived_ds = load_pre_transformed_dataset(list(states), entities=entities)
-    derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
-    dollar_level_ds = run_dollar_level_pipeline(underived_ds, num_years_ma)
-    return dollar_level_ds, derived_ratio_ds
+@st.cache_data
+def _build_entity_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_begin=None, year_end=None):
+    return run_full_entity_pipeline(list(states), num_years_ma, entities=entities, year_start=year_begin, year_end=year_end)
 
 
 @st.cache_data
 def _normalize_dollar_ds(_dollar_level_ds, normalization_measure: str):
-    return normalize_measures(_dollar_level_ds, normalization_measure, vars=['value', 'ma'])
+    return normalize_measures(_dollar_level_ds, normalization_measure, vars=[InterfaceFields.ENDPOINT, InterfaceFields.MA])
 
 
 
@@ -97,22 +95,17 @@ num_years_ma = st.sidebar.number_input('Lookback Years', 1, 10, 5)
 # Data
 #######################################################################################################
 
-dollar_level_ds, derived_ratio_ds = _build_datasets((selected_state,), num_years_ma, frozenset(entities_in_state))
+level_ds, _, _ = _build_entity_datasets((selected_state,), num_years_ma, frozenset(entities_in_state))
 
-if measure_source == MeasureSource.RATIOS:
-    filtered_measure_ds = derived_ratio_ds
-    active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'endpoint'
-else:
-    filtered_measure_ds = dollar_level_ds
-    active_var = 'ma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else 'value'
+active_var = InterfaceFields.MA if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else InterfaceFields.ENDPOINT
 
-type_orgs = sorted(set(type_entities) & set(filtered_measure_ds.coords['organization'].values))
-active_ds = filtered_measure_ds.sel(organization=type_orgs)
+type_orgs = sorted(set(type_entities) & set(level_ds.coords['organization'].values))
+active_ds = level_ds.sel(organization=type_orgs)
 
 aggregate_ds = calc_population_aggregates(active_ds, var=active_var)
 
 if measure_source != MeasureSource.RATIOS:
-    full_normalized_ds = _normalize_dollar_ds(filtered_measure_ds, normalization)
+    full_normalized_ds = _normalize_dollar_ds(level_ds, normalization)
     normalized_ds = full_normalized_ds.sel(organization=type_orgs)
     agg_norm_ds = calc_population_aggregates(normalized_ds, var=active_var)
 
@@ -136,8 +129,8 @@ else:
 chart_ds = normalized_ds if show_normalized else active_ds
 chart_agg_ds = agg_norm_ds if show_normalized else aggregate_ds
 hospital_da = chart_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=selected_measure)
-pop_mean_da = chart_agg_ds['mean'].sel(population='total', measure=selected_measure)
-pop_std_da = chart_agg_ds['std'].sel(population='total', measure=selected_measure)
+pop_mean_da = chart_agg_ds[InterfaceFields.MEAN].sel(population=Population.TOTAL, measure=selected_measure)
+pop_std_da = chart_agg_ds[InterfaceFields.STD].sel(population=Population.TOTAL, measure=selected_measure)
 chart_tickformat = '.1%' if show_normalized else None
 
 suffixes = [s for s in [
@@ -203,14 +196,14 @@ if measure_source != MeasureSource.RATIOS:
     extra_cols = [
         _sel_series(normalized_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year), f'Hospital / {normalization}'),
         *([_sel_series(full_normalized_ds[active_var].sel(organization=parent_system, state=selected_state, measure=table_measures, year=selected_year), parent_system)] if parent_system else []),
-        _sel_series(agg_norm_ds['mean'].sel(population='total', measure=table_measures, year='Total'), f'Population / {normalization}'),
-        _sel_series(agg_norm_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), f'Failed / {normalization}'),
+        _sel_series(agg_norm_ds[InterfaceFields.MEAN].sel(population=Population.TOTAL, measure=table_measures, year='Total'), f'Population / {normalization}'),
+        _sel_series(agg_norm_ds[InterfaceFields.MEAN].sel(population=Population.FAILED, measure=table_measures, year='Total'), f'Failed / {normalization}'),
     ]
 else:
     extra_cols = [
-        *([_sel_series(filtered_measure_ds[active_var].sel(organization=parent_system, state=selected_state, measure=table_measures, year=selected_year), parent_system)] if parent_system else []),
-        _sel_series(aggregate_ds['mean'].sel(population='total', measure=table_measures, year='Total'), 'Population Mean'),
-        _sel_series(aggregate_ds['mean'].sel(population='failed', measure=table_measures, year='Total'), 'Failed Mean'),
+        *([_sel_series(level_ds[active_var].sel(organization=parent_system, state=selected_state, measure=table_measures, year=selected_year), parent_system)] if parent_system else []),
+        _sel_series(aggregate_ds[InterfaceFields.MEAN].sel(population=Population.TOTAL, measure=table_measures, year='Total'), 'Population Mean'),
+        _sel_series(aggregate_ds[InterfaceFields.MEAN].sel(population=Population.FAILED, measure=table_measures, year='Total'), 'Failed Mean'),
     ]
 change_cols = [change_col] if change_col is not None else []
 table_df = hospital_vals.to_frame().join(change_cols + extra_cols)
@@ -231,12 +224,12 @@ else:
 
 if hospital_or_system == 'System':
     system_hospitals = sorted(SYSTEMS_TO_HOSPITALS_MAP.get((selected_entity, selected_state), set()))
-    available_hospitals = [h for h in system_hospitals if h in filtered_measure_ds.coords['organization'].values]
+    available_hospitals = [h for h in system_hospitals if h in level_ds.coords['organization'].values]
 
     if available_hospitals:
         st.subheader(f'Hospitals in {selected_entity} — {selected_measure}')
         raw_vals = _sel_series(
-            filtered_measure_ds[active_var].sel(
+            level_ds[active_var].sel(
                 organization=available_hospitals, state=selected_state, measure=selected_measure, year=selected_year
             ),
             'Value',
