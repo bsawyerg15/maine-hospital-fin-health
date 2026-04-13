@@ -4,7 +4,7 @@ from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
-from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
+from c_Fin_Statement_Processing.e_main_data_pipeline import load_pre_transformed_dataset
 from e_Data_Pipelines.derived_ratio_pipeline import run_derived_ratio_pipeline
 from e_Data_Pipelines.a_dollar_level_pipeline import run_dollar_level_pipeline
 from d_Transformations.c_normalize_measures import normalize_measures
@@ -24,15 +24,8 @@ st.set_page_config(
 #######################################################################################################
 
 @st.cache_data
-def _load_underived(states: tuple):
-    return create_full_underived_df(list(states))
-
-
-@st.cache_data
 def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset):
-    df = _load_underived(states)
-    df = df[df.index.get_level_values('Organization').isin(entities)]
-    underived_ds = to_dataset(df)
+    underived_ds = load_pre_transformed_dataset(list(states), entities=entities)
     derived_ratio_ds = run_derived_ratio_pipeline(underived_ds, num_years_ma)
     dollar_level_ds = run_dollar_level_pipeline(underived_ds, num_years_ma)
     return dollar_level_ds, derived_ratio_ds

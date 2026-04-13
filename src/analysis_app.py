@@ -5,11 +5,9 @@ from a_Config.enumerations.interface_fields_enum import InterfaceFields
 from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import get_fin_statement_descendants
-from c_Fin_Statement_Processing.e_main_data_pipeline import create_full_underived_df, to_dataset
-from e_Data_Pipelines.d_run_combined_pipeline import run_combined_pipeline
+from e_Data_Pipelines.e_run_full_entity_pipeline import run_full_entity_pipeline
 from f_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
-from e_Data_Pipelines.b_run_level_pipeline import run_level_pipeline
-from e_Data_Pipelines.c_change_pipeline import run_change_pipeline, calc_pct_changes
+from e_Data_Pipelines.c_change_pipeline import calc_pct_changes
 from g_Visualizations.failed_histogram import plot_failed_histogram
 from g_Visualizations.mean_bar_charts import plot_mean_bar_chart
 from g_Visualizations.leadup_to_failure import plot_leadup_to_failure, plot_cum_leadup_to_failure
@@ -30,27 +28,13 @@ st.set_page_config(
 #######################################################################################################
 
 @st.cache_data
-def _load_underived(states: tuple):
-    return create_full_underived_df(list(states))
-
-
-@st.cache_data
-def _build_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_begin=None, year_end=None):
-    df = _load_underived(states)
-    df = df[df.index.get_level_values('Organization').isin(entities)]
-    if year_begin is not None and year_end is not None:
-        year_index = df.index.get_level_values('Year').astype(int)
-        df = df[(year_index >= year_begin) & (year_index <= year_end)]
-    underived_ds = to_dataset(df)
-    level_ds = run_level_pipeline(underived_ds, num_years_ma)
-    change_ds = run_change_pipeline(level_ds, num_years_ma)
-    combined_df = run_combined_pipeline(level_ds, change_ds)
-    return level_ds, change_ds, combined_df
+def _build_entity_datasets(states: tuple, num_years_ma: int, entities: frozenset, year_begin=None, year_end=None):
+    return run_full_entity_pipeline(list(states), num_years_ma, entities=entities, year_start=year_begin, year_end=year_end)
 
 
 @st.cache_data
 def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year_begin, year_end, x_measure: str, measures: tuple, x_change_or_level: ChangeOrLevel, y_change_or_level: ChangeOrLevel, y_lag: int):
-    _, _, combined_ds = _build_datasets(states, num_years_ma, entities, year_begin, year_end)
+    _, _, combined_ds = _build_entity_datasets(states, num_years_ma, entities, year_begin, year_end)
     return calc_r2_table(combined_ds, x_measure, list(measures), x_change_or_level, y_change_or_level, y_lag=y_lag)
 
 
@@ -138,7 +122,7 @@ num_years_ma = st.sidebar.number_input(
 #######################################################################################################
 
 states_key = tuple(selected_states)
-level_ds, change_ds, combined_ds = _build_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
+level_ds, change_ds, combined_ds = _build_entity_datasets(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end)
 
 is_use_levels = change_or_level == ChangeOrLevel.LEVEL
 active_ds = level_ds if is_use_levels else change_ds

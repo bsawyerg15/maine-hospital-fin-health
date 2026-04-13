@@ -1,5 +1,6 @@
 import pandas as pd
 import xarray as xr
+import streamlit as st
 from a_Config.enumerations.state_enum import State
 from a_Config.global_constants import VALID_MEASURES, HOSPITAL_METADATA
 from b_Ingest.z_get_financials_by_state import get_financials_by_state
@@ -56,44 +57,34 @@ def process_state_input_df(state: State, input_df=None) -> pd.DataFrame:
     return internal_domain_df
 
 
-def create_full_underived_df(states: list[State]) -> pd.DataFrame:
-    """
-    Processes all states and concatenates into a single DataFrame.
-
-    Returns:
-        DataFrame with MultiIndex (Organization, State, Measure, Year)
-        and columns Value, Year Failed.
-    """
-    return pd.concat([process_state_input_df(s) for s in states])
-
-
-def to_dataset(underived_df: pd.DataFrame) -> xr.Dataset:
-    """
-    Converts the processed underived pandas DataFrame to an xr.Dataset.
-
-    Args:
-        underived_df: Output of create_full_underived_df — MultiIndex
-            (Organization, State, Measure, Year), columns Value, Year Failed.
-
-    Returns:
-        Dataset with a 'value' variable of shape
-        (organization, state, measure, year) and a 'year_failed' coordinate
-        of shape (organization, state).
-    """
-    df = underived_df.rename_axis(
+@st.cache_data
+def _load_all_states(states: tuple) -> xr.Dataset:
+    df = pd.concat([process_state_input_df(s) for s in states])
+    df = df.rename_axis(
         index={'Organization': 'organization', 'State': 'state',
                'Measure': 'measure', 'Year': 'year'}
     )
-
     value_da = df['Value'].to_xarray().sortby('year')
-
     year_failed_da = (
         df['Year Failed']
         .groupby(level=['organization', 'state']).first()
         .to_xarray()
     )
+    return xr.Dataset({'value': value_da}, coords={'year_failed': year_failed_da})
 
-    return xr.Dataset(
-        {'value': value_da},
-        coords={'year_failed': year_failed_da},
-    )
+
+def load_pre_transformed_dataset(
+    # Splitting from load_all_states for performace benefits
+    states: list[State],
+    entities=None,
+    year_start=None,
+    year_end=None,
+) -> xr.Dataset:
+    ds = _load_all_states(tuple(states))
+
+    if entities is not None:
+        ds = ds.sel(organization=list(entities))
+    if year_start is not None and year_end is not None:
+        ds = ds.sel(year=slice(str(year_start), str(year_end)))
+
+    return ds
