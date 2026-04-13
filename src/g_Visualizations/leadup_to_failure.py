@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from a_Config.global_constants import get_measure_tickformat
 
 
-def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=None):
+def plot_leadup_to_failure(da, mean, std, title=None, subtitle=None, yaxis_title=None, measure=None):
     """
     Plot each failed hospital as a time series of Value vs Relative Year.
 
@@ -48,7 +48,7 @@ def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=
             x=x, y=[mean] * len(x),
             mode="lines",
             line=dict(color="steelblue", dash="dash", width=1.5),
-            name="Operational Mean",
+            name="Operational Mean +/- 1 Std. Dev.",
         ))
 
     for org in da.coords['organization'].values:
@@ -67,7 +67,7 @@ def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=
             ))
 
     fig.update_layout(
-        title=title,
+        title=dict(text=title, subtitle=dict(text=subtitle)),
         yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure) if measure else None),
         xaxis_title=None,
     )
@@ -75,7 +75,7 @@ def plot_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=
     return fig
 
 
-def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, measure=None):
+def plot_cum_leadup_to_failure(da, mean, std, title=None, subtitle=None, yaxis_title=None, measure=None):
     """
     Plot each failed hospital's cumulative percent change, re-indexed to 0 at
     the first relative year, with a geometric-mean reference line and a
@@ -127,7 +127,7 @@ def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, meas
             x=x, y=mean_line,
             mode="lines",
             line=dict(color="steelblue", dash="dash", width=1.5),
-            name="Operational Mean",
+            name="Operational Mean +/- 1 Std. Dev.",
         ))
 
     for org in da.coords['organization'].values:
@@ -148,7 +148,7 @@ def plot_cum_leadup_to_failure(da, mean, std, title=None, yaxis_title=None, meas
             ))
 
     fig.update_layout(
-        title=title,
+        title=dict(text=title, subtitle=dict(text=subtitle)),
         yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure, is_pct=True) if measure else None),
         xaxis_title=None,
     )

@@ -1,3 +1,4 @@
+from email.policy import default
 import streamlit as st
 import xarray as xr
 from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
@@ -226,7 +227,8 @@ with col2:
                 non_failed_mean,
                 non_failed_std_dev,
                 yaxis_title=selected_measure,
-                title=f'Lead Up to Failure vs Population: {change_in_text}{selected_measure}',
+                title=f'Lead Up to Failure vs Population: {default_title}',
+                subtitle=default_subtitle,
                 measure=selected_measure,
             )
         )
@@ -237,7 +239,8 @@ with col2:
                 non_failed_mean,
                 non_failed_std_dev,
                 yaxis_title=f'{selected_measure}\n(Cum. % Change)',
-                title=f'Lead Up to Failure vs Population: {selected_measure}',
+                title=f'Lead Up to Failure vs Population: {default_title}',
+                subtitle=default_subtitle,
                 measure=selected_measure,
             )
         )
