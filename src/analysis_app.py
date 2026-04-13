@@ -266,20 +266,20 @@ margin = 0.3
 _, col, side_col = st.columns([margin, 1, margin])
 
 with side_col:
-    scatter_measure_y = st.selectbox('Scatter Y-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
-    endpoint_or_ma = st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
-    y_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
-    y_lag = st.number_input('Lag Y-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
+    scatter_measure_x = st.selectbox('Scatter X-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
+    endpoint_or_ma = MovingAvgOrEndpoint(
+        st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
+        )
+    x_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
+    x_lag = st.number_input('Lag X-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
+
 with col:
-    scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT.value else combined_ds[InterfaceFields.MA]
-    y_da = scatter_da.sel(measure=scatter_measure_y, change_or_level=y_change_or_level)
-    if y_lag != 0:
-        y_da = y_da.shift(year=y_lag)
+    scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT else combined_ds[InterfaceFields.MA]
     st.plotly_chart(plot_measure_scatter(
+        scatter_da.sel(measure=scatter_measure_x, change_or_level=x_change_or_level),
         scatter_da.sel(measure=selected_measure, change_or_level=change_or_level),
-        y_da,
         combined_ds[InterfaceFields.YEAR_FAILED],
-        y_lag=y_lag,
+        x_lag=x_lag,
     ))
 
     def _styled(df):
@@ -288,10 +288,10 @@ with col:
                 .format({'Last R²': '{:.2f}', 'MA R²': '{:.2f}'}))
 
     with st.expander("R² vs Ratios", expanded=True):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Income Statement Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), change_or_level, y_change_or_level, y_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
