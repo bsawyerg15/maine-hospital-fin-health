@@ -103,6 +103,7 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
 
         relative = [y - year_failed for y in selected]
 
+        full_relative_years = list(range(-(num_years - 1), 1))
         h_ds = xr.Dataset({
             var: (
                 ds[var]
@@ -111,7 +112,7 @@ def create_failed_dataset(ds: xr.Dataset, num_years: int) -> xr.Dataset:
                 .rename({'year': 'relative_year'})
             )
             for var in ds.data_vars
-        })
+        }).reindex(relative_year=full_relative_years)
         slices.append(h_ds)
 
     if not slices:

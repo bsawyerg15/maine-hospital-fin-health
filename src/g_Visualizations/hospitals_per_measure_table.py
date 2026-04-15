@@ -10,7 +10,11 @@ def hospitals_per_measure_table(active_ds: xr.Dataset, selected_measure: str, la
     selected_table_year = st.select_slider('Year', options=available_years, value=available_years[-1])
 
     table_df = active_ds.sel(measure=selected_measure, year=selected_table_year).to_dataframe()[[last_col, ma_col]].dropna().sort_values(last_col, ascending=False)
-    format = get_measure_tickformat(selected_measure, is_pct='pct' in table_df.columns[0])
+    fmt = get_measure_tickformat(selected_measure, is_pct='pct' in table_df.columns[0])
     table_df.columns = ['Endpoint', f'{num_years_ma}yma']
     table_df.index.names = ['Organization', 'State']
-    return table_df.style.format('{:' + format + '}')
+    if fmt.startswith('$'):
+        formatter = lambda x: f'${x:{fmt[1:]}}'
+    else:
+        formatter = '{:' + fmt + '}'
+    return table_df.style.format(formatter)

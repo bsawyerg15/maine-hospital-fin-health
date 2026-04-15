@@ -5,7 +5,7 @@ import xarray as xr
 from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 
-def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, x_lag: int = 0) -> go.Figure:
+def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, x_lag: int = 0, title=None, subtitle=None, x_label=None, y_label=None) -> go.Figure:
     """
     Scatter plot of x_da vs y_da, one point per (hospital, year).
 
@@ -29,7 +29,7 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
     if x_lag != 0:
         x_da = x_da.shift(year=x_lag)
         lag_sign = '+' if x_lag > 0 else ''
-        measure_x = f'{measure_x} (lag {lag_sign}{x_lag}y)'
+        measure_x = f'{measure_x} (lagged {lag_sign}{x_lag}yr)'
 
     x_series = x_da.to_series().rename('x')
     y_series = y_da.to_series().rename('y')
@@ -105,11 +105,16 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
 
     is_pct_x = measure_x not in ALL_RATIOS
     is_pct_y = measure_y not in ALL_RATIOS
-    xaxis_title = f'{measure_x} (% Chg)' if is_pct_x else measure_x
-    yaxis_title = f'{measure_y} (% Chg)' if is_pct_y else measure_y
+    xaxis_title = x_label or measure_x
+    yaxis_title = y_label or measure_y
+
+    title_text = title or f'{measure_y} vs {measure_x}'
+    title_dict = dict(text=title_text)
+    if subtitle is not None:
+        title_dict['subtitle'] = dict(text=subtitle)
 
     fig.update_layout(
-        title=f'{measure_x} vs {measure_y}',
+        title=title_dict,
         xaxis=dict(title=xaxis_title, tickformat=get_measure_tickformat(measure_x, is_pct_x)),
         yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure_y, is_pct_y)),
         width=600,

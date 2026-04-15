@@ -5,7 +5,7 @@ from a_Config.enumerations.population_enum import Population
 from a_Config.enumerations.measure_source_enum import MeasureSource
 from a_Config.global_constants import DERIVE_RATIOS, HOSPITAL_METADATA, SYSTEMS_TO_HOSPITALS_MAP, get_measure_tickformat
 from a_Config.enumerations import *
-from a_Config.fin_statement_model_utils import get_fin_statement_descendants_and_self
+from a_Config.fin_statement_model_utils import BALANCE_SHEET_MEASURES, INCOME_STATEMENT_MEASURES, OTHER_MEASURES, get_fin_statement_descendants_and_self
 from e_Data_Pipelines.e_run_full_entity_pipeline import run_full_entity_pipeline
 from d_Transformations.c_normalize_measures import normalize_measures
 from f_Aggregations.aggregations import calc_population_aggregates
@@ -40,8 +40,6 @@ def _normalize_dollar_ds(_dollar_level_ds, normalization_measure: str):
 #######################################################################################################
 
 derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
-income_statement_items = list(get_fin_statement_descendants_and_self('Total Surplus/Deficit'))
-balance_sheet_items = list(get_fin_statement_descendants_and_self('Total Unrestricted Assets') | get_fin_statement_descendants_and_self('Total Liabilities and Equity'))
 
 selected_state = st.sidebar.selectbox('State', list(State), format_func=lambda s: s.value)
 
@@ -71,9 +69,11 @@ match measure_source:
     case MeasureSource.RATIOS:
         measure_options = derived_ratios
     case MeasureSource.INCOME_STATEMENT:
-        measure_options = income_statement_items
+        measure_options = INCOME_STATEMENT_MEASURES
     case MeasureSource.BALANCE_SHEET:
-        measure_options = balance_sheet_items
+        measure_options = BALANCE_SHEET_MEASURES
+    case MeasureSource.OTHER:
+        measure_options = OTHER_MEASURES
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options)
 

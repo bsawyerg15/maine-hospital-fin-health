@@ -3,9 +3,9 @@ import streamlit as st
 import xarray as xr
 from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
 from a_Config.enumerations.interface_fields_enum import InterfaceFields
-from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP
+from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP, INCOME_STATEMENT_MEASURES, BALANCE_SHEET_MEASURES
 from a_Config.enumerations import *
-from a_Config.fin_statement_model_utils import get_fin_statement_descendants
+from a_Config.fin_statement_model_utils import OTHER_MEASURES, get_fin_statement_descendants
 from e_Data_Pipelines.e_run_full_entity_pipeline import run_full_entity_pipeline
 from f_Aggregations.aggregations import create_failed_dataset, calc_population_aggregates, calc_aggregates
 from e_Data_Pipelines.c_change_pipeline import calc_pct_changes
@@ -49,25 +49,25 @@ measure_source = MeasureSource(
     st.sidebar.radio('Measure Source', [e.value for e in MeasureSource])
 )
 
-use_ratios = measure_source == MeasureSource.RATIOS
+is_use_ratios = measure_source == MeasureSource.RATIOS
 
-derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
-income_statement_items = list(get_fin_statement_descendants('Total Surplus/Deficit'))
-balance_sheet_items = list(get_fin_statement_descendants('Total Unrestricted Assets') | get_fin_statement_descendants('Total Liabilities and Equity'))
+derived_ratios = set(DERIVE_RATIOS['Measure'].unique())
 match measure_source:
     case MeasureSource.RATIOS:
         measure_options = derived_ratios
     case MeasureSource.INCOME_STATEMENT:
-        measure_options = income_statement_items
+        measure_options = INCOME_STATEMENT_MEASURES
     case MeasureSource.BALANCE_SHEET:
-        measure_options = balance_sheet_items
-all_measure_options = derived_ratios + income_statement_items + balance_sheet_items
+        measure_options = BALANCE_SHEET_MEASURES
+    case MeasureSource.OTHER:
+        measure_options = OTHER_MEASURES
+all_measure_options = derived_ratios | INCOME_STATEMENT_MEASURES | BALANCE_SHEET_MEASURES | OTHER_MEASURES
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
 
 change_or_level = ChangeOrLevel(
     st.sidebar.segmented_control('', options=[e.value for e in ChangeOrLevel], 
-                                               default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed')
+                                               default=ChangeOrLevel.LEVEL.value if is_use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed')
 )
 
 ###### Entity Configs #######
@@ -130,7 +130,7 @@ active_ds = level_ds if is_use_levels else change_ds
 failed_ds = create_failed_dataset(active_ds, num_years_ma + 1)
 last_col = InterfaceFields.ENDPOINT if is_use_levels else InterfaceFields.CHANGE
 ma_col = InterfaceFields.MA if is_use_levels else InterfaceFields.MA_OF_CHANGE
-change_type = ChangeType.ARITHMETIC if use_ratios else ChangeType.GEOMETRIC
+change_type = ChangeType.ARITHMETIC if is_use_ratios else ChangeType.GEOMETRIC
 
 aggregate_ds = calc_population_aggregates(active_ds, var=last_col, change_type=change_type)
 ma_aggregate_ds = calc_population_aggregates(active_ds, var=ma_col, change_type=change_type)
@@ -141,12 +141,15 @@ failed_ma_aggregate_ds = calc_aggregates(failed_ds, ma_col, change_type, year_di
 # Viz Helpers
 #######################################################################################################
 
-if is_use_levels:
-    change_in_text = ""
-elif use_ratios:
-    change_in_text = "Change in "
-else:
-    change_in_text = "% Change in "
+def _change_in_text(is_change, is_pct):
+    if not is_change:
+        return ""
+    elif is_pct:
+        return "% Change in "
+    else:
+        return "Change in "
+
+change_in_text = _change_in_text(is_change=(not is_use_levels), is_pct=(not is_use_ratios))
 
 default_title = f'{change_in_text}{selected_measure}'
 
@@ -178,7 +181,7 @@ non_failed_mean = float(aggregate_ds[InterfaceFields.MEAN].sel(population='non_f
 non_failed_std_dev = float(aggregate_ds[InterfaceFields.STD].sel(population='non_failed', measure=selected_measure, year='Total'))
 
 with col:
-    lb, ub = (None, None) if use_ratios else (-1, 3)
+    lb, ub = (None, None) if is_use_ratios else (-1, 3)
     ma_title = f' ({num_years_ma}yma)' if is_use_ma_for_hist else ''
     st.plotly_chart(
         plot_failed_histogram(
@@ -219,8 +222,10 @@ with col1:
 
 ###### Leadup to Failure Chart ######
 
+is_use_cone = not (is_use_ratios | is_use_levels)
+
 with col2:
-    if use_ratios:
+    if not is_use_cone:
         st.plotly_chart(
             plot_leadup_to_failure(
                 failed_ds[last_col].sel(measure=selected_measure),
@@ -273,9 +278,17 @@ with side_col:
     endpoint_or_ma = MovingAvgOrEndpoint(
         st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
         )
-    x_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
+    x_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if is_use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
     x_lag = st.number_input('Lag X-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
-
+    
+    # Create x_label for chart
+    lag_sign = '+' if x_lag > 0 else ''
+    lag_text = f'lagged {lag_sign}{x_lag}yr' if x_lag != 0 else None
+    ma_text = f'{num_years_ma}yma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else None
+    modifications = [x for x in [ma_text, lag_text] if x]
+    modification_str = f'({", ".join(modifications)})' if modifications else ''
+    x_change_in_text = _change_in_text(x_change_or_level == ChangeOrLevel.CHANGE, (scatter_measure_x not in derived_ratios))
+    x_label = f"{x_change_in_text}{scatter_measure_x}{modification_str}"
 with col:
     scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT else combined_ds[InterfaceFields.MA]
     st.plotly_chart(plot_measure_scatter(
@@ -283,6 +296,10 @@ with col:
         scatter_da.sel(measure=selected_measure, change_or_level=change_or_level),
         combined_ds[InterfaceFields.YEAR_FAILED],
         x_lag=x_lag,
+        title=f'{default_title} vs {x_label}',
+        subtitle=default_subtitle,
+        x_label=x_label,
+        y_label=default_title,
     ))
 
     def _styled(df):
@@ -294,7 +311,7 @@ with col:
         st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Income Statement Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(income_statement_items), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(INCOME_STATEMENT_MEASURES), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
 
     with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
-        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(balance_sheet_items), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
+        st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(BALANCE_SHEET_MEASURES), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
