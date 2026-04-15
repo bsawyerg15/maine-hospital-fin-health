@@ -4,7 +4,7 @@ from a_Config.global_constants import get_measure_tickformat
 
 
 def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=20, title=None,
-                          subtitle=None, clip_lower=None, clip_upper=None):
+                          subtitle=None, chart_format=None, clip_lower=None, clip_upper=None):
     """
     Plot a dual-axis histogram comparing a population to failed hospitals.
 
@@ -71,13 +71,11 @@ def plot_failed_histogram(ds, failed_ds, measure_name, var, ma_years=None, bins=
         yaxis="y2",
     ))
 
-    is_pct = 'pct' in var
-    pct_text = ' (% Chg)' if is_pct else ''
-    xaxis_title = f'{measure_name}{pct_text}' if is_pct else measure_name
+    xaxis_title = f'{measure_name}'
 
     fig.update_layout(
-        title=dict(text=title or f'Distribution of {measure_name}{pct_text}', subtitle=dict(text=subtitle)),
-        xaxis=dict(title=xaxis_title, tickformat=get_measure_tickformat(measure_name, is_pct)),
+        title=dict(text=title or f'Distribution of {measure_name}', subtitle=dict(text=subtitle)),
+        xaxis=dict(title=xaxis_title, tickformat=chart_format),
         yaxis=dict(title="Operational count", title_font=dict(color="steelblue")),
         yaxis2=dict(
             title="Failed count",

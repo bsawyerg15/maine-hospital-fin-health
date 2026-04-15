@@ -5,7 +5,7 @@ import xarray as xr
 from a_Config.global_constants import get_measure_tickformat, ALL_RATIOS
 
 
-def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, x_lag: int = 0, title=None, subtitle=None, x_label=None, y_label=None) -> go.Figure:
+def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr.DataArray, x_lag: int = 0, title=None, subtitle=None, x_format=None, y_format=None, x_label=None, y_label=None) -> go.Figure:
     """
     Scatter plot of x_da vs y_da, one point per (hospital, year).
 
@@ -103,8 +103,6 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
         hoverinfo='skip',
     ))
 
-    is_pct_x = measure_x not in ALL_RATIOS
-    is_pct_y = measure_y not in ALL_RATIOS
     xaxis_title = x_label or measure_x
     yaxis_title = y_label or measure_y
 
@@ -115,8 +113,8 @@ def plot_measure_scatter(x_da: xr.DataArray, y_da: xr.DataArray, year_failed: xr
 
     fig.update_layout(
         title=title_dict,
-        xaxis=dict(title=xaxis_title, tickformat=get_measure_tickformat(measure_x, is_pct_x)),
-        yaxis=dict(title=yaxis_title, tickformat=get_measure_tickformat(measure_y, is_pct_y)),
+        xaxis=dict(title=xaxis_title, tickformat=x_format),
+        yaxis=dict(title=yaxis_title, tickformat=y_format),
         width=600,
         height=600,
         legend=dict(x=0.01, y=0.99),

@@ -10,6 +10,7 @@ def plot_hospital_time_series(
     hospital_name=None,
     measure=None,
     title=None,
+    subtitle=None,
     tickformat=None,
     yaxis_title=None,
 ):
@@ -82,11 +83,11 @@ def plot_hospital_time_series(
     ))
 
     fig.update_layout(
-        title=title,
+        title=dict(text=title, subtitle=dict(text=subtitle)),
         xaxis_title='Year',
         yaxis=dict(
             title=yaxis_title if yaxis_title is not None else measure,
-            tickformat=tickformat if tickformat is not None else (get_measure_tickformat(measure) if measure else None),
+            tickformat=tickformat if tickformat is not None else (get_measure_tickformat(measure, is_level=True) if measure else None),
         ),
     )
 

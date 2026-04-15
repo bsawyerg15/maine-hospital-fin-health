@@ -3,7 +3,7 @@ import streamlit as st
 import xarray as xr
 from a_Config.enumerations.change_or_level_enum import ChangeOrLevel
 from a_Config.enumerations.interface_fields_enum import InterfaceFields
-from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP, INCOME_STATEMENT_MEASURES, BALANCE_SHEET_MEASURES
+from a_Config.global_constants import DERIVE_RATIOS, LINE_ITEMS, ALL_RATIOS, SYSTEMS_TO_HOSPITALS_MAP, INCOME_STATEMENT_MEASURES, BALANCE_SHEET_MEASURES, get_measure_tickformat
 from a_Config.enumerations import *
 from a_Config.fin_statement_model_utils import OTHER_MEASURES, get_fin_statement_descendants
 from e_Data_Pipelines.e_run_full_entity_pipeline import run_full_entity_pipeline
@@ -159,6 +159,8 @@ subtitle_year_begin = year_begin or int(active_ds.year.values.min())
 subtitle_year_end = year_end or int(active_ds.year.values.max())
 default_subtitle = f'{state_subtitle_str}, {subtitle_year_begin}-{subtitle_year_end}'
 
+measure_format = get_measure_tickformat(selected_measure, is_use_levels)
+
 #######################################################################################################
 # App
 #######################################################################################################
@@ -192,7 +194,8 @@ with col:
             ma_years=num_years_ma if is_use_ma_for_hist else None,
             clip_lower=lb, clip_upper=ub,
             title=f'Distribution of {default_title}{ma_title}',
-            subtitle=default_subtitle
+            subtitle=default_subtitle,
+            chart_format=measure_format,
         ),
         use_container_width=True
     )
@@ -216,6 +219,7 @@ with col1:
             ['Operational', 'Failed Year', f'{num_years_ma}yma Before Failing'],
             title=f'Mean {default_title} +/- 1 Std. Dev.',
             subtitle=default_subtitle,
+            chart_format=measure_format,
             measure=selected_measure,
         )
     )
@@ -234,6 +238,7 @@ with col2:
                 yaxis_title=selected_measure,
                 title=f'Lead Up to Failure vs Population: {default_title}',
                 subtitle=default_subtitle,
+                chart_format=measure_format,
                 measure=selected_measure,
             )
         )
@@ -246,6 +251,7 @@ with col2:
                 yaxis_title=f'{selected_measure}\n(Cum. % Change)',
                 title=f'Lead Up to Failure vs Population: {default_title}',
                 subtitle=default_subtitle,
+                chart_format=measure_format,
                 measure=selected_measure,
             )
         )
@@ -255,12 +261,12 @@ with col2:
 hospitals_per_measure_expander = st.expander(f'All {selected_measure} Values', expanded=False)
 
 with hospitals_per_measure_expander:
-    st.dataframe(hospitals_per_measure_table(active_ds, selected_measure, last_col, ma_col, num_years_ma))
+    st.dataframe(hospitals_per_measure_table(active_ds, selected_measure, last_col, ma_col, num_years_ma, chart_format=measure_format))
 
 ###### All Measures Exploration ######
 
 st.subheader("All Measures: Operational vs. Failed")
-st.dataframe(calc_measure_comparison_table(aggregate_ds, ma_aggregate_ds, failed_aggregate_ds, failed_ma_aggregate_ds, measure_options))
+st.dataframe(calc_measure_comparison_table(aggregate_ds, ma_aggregate_ds, failed_aggregate_ds, failed_ma_aggregate_ds, measure_options, is_use_levels))
 
 #######################################################################################################
 # Comparison to Other Measures
@@ -279,6 +285,7 @@ with side_col:
         st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
         )
     x_change_or_level = ChangeOrLevel(st.segmented_control('', options=[e.value for e in ChangeOrLevel], default=ChangeOrLevel.LEVEL.value if is_use_ratios else ChangeOrLevel.CHANGE.value, label_visibility='collapsed'))
+    x_is_use_level = x_change_or_level == ChangeOrLevel.LEVEL
     x_lag = st.number_input('Lag X-Axis Measure', min_value=-10, max_value=10, value=0, step=1, help='Positive values shift the X-axis measure forward in time, so X at year T is paired with Y at year T+lag.')
     
     # Create x_label for chart
@@ -287,8 +294,9 @@ with side_col:
     ma_text = f'{num_years_ma}yma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else None
     modifications = [x for x in [ma_text, lag_text] if x]
     modification_str = f'({", ".join(modifications)})' if modifications else ''
-    x_change_in_text = _change_in_text(x_change_or_level == ChangeOrLevel.CHANGE, (scatter_measure_x not in derived_ratios))
+    x_change_in_text = _change_in_text(not x_is_use_level, (scatter_measure_x not in derived_ratios))
     x_label = f"{x_change_in_text}{scatter_measure_x}{modification_str}"
+    x_format = get_measure_tickformat(scatter_measure_x, x_is_use_level)
 with col:
     scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT else combined_ds[InterfaceFields.MA]
     st.plotly_chart(plot_measure_scatter(
@@ -298,6 +306,8 @@ with col:
         x_lag=x_lag,
         title=f'{default_title} vs {x_label}',
         subtitle=default_subtitle,
+        x_format=x_format,
+        y_format=measure_format,
         x_label=x_label,
         y_label=default_title,
     ))

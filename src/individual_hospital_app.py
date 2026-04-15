@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from traitlets import default
 from a_Config.enumerations.interface_fields_enum import InterfaceFields
 from a_Config.enumerations.population_enum import Population
 from a_Config.enumerations.measure_source_enum import MeasureSource
@@ -133,12 +134,16 @@ pop_mean_da = chart_agg_ds[InterfaceFields.MEAN].sel(population=Population.TOTAL
 pop_std_da = chart_agg_ds[InterfaceFields.STD].sel(population=Population.TOTAL, measure=selected_measure)
 chart_tickformat = '.1%' if show_normalized else None
 
+default_title = f'{selected_measure}: {selected_entity}'
 suffixes = [s for s in [
     '$' if (measure_source != MeasureSource.RATIOS and not show_normalized) else None,
     'Normalized' if show_normalized else None,
     f'{num_years_ma}yma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else None,
 ] if s is not None]
-title = f'{selected_measure} ({", ".join(suffixes)})' if suffixes else selected_measure
+title_suffix = f'({", ".join(suffixes)})'
+title = f'{selected_measure} {title_suffix}: {selected_entity}' if suffixes else default_title
+yaxis_title = f'{selected_measure} /<br>{normalization}' if show_normalized else selected_measure
+
 
 show_pop_band = measure_source == MeasureSource.RATIOS or show_normalized
 
@@ -152,7 +157,7 @@ with chart_col:
             measure=selected_measure,
             title=title,
             tickformat=chart_tickformat,
-            yaxis_title=title,
+            yaxis_title=yaxis_title,
         ),
         use_container_width=True,
     )
@@ -174,7 +179,7 @@ table_measures = [m for m in measure_options if m in ds_measures]
 
 hospital_vals = _sel_series(
     active_ds[active_var].sel(organization=selected_entity, state=selected_state, measure=table_measures, year=selected_year),
-    'Value'
+    str(selected_year)
 )
 
 # TODO: This should really be refactored into a function
@@ -214,7 +219,7 @@ if measure_source != MeasureSource.RATIOS:
             roots = ['Net Income']
         case MeasureSource.BALANCE_SHEET:
             roots = ['Total Unrestricted Assets', 'Total Liabilities and Equity']
-    col_formatters = {table_df.columns[0]: _tickformat_to_js(get_measure_tickformat(table_measures[0])), **{col: _tickformat_to_js('.1%') for col in table_df.columns[1:]}}
+    col_formatters = {table_df.columns[0]: _tickformat_to_js(get_measure_tickformat(table_measures[0], is_level=True)), **{col: _tickformat_to_js('.1%') for col in table_df.columns[1:]}}
     create_hierarchical_aggrid(table_df, roots=roots, col_formatters=col_formatters)
 else:
     st.dataframe(table_df, use_container_width=True)
@@ -227,12 +232,14 @@ if hospital_or_system == 'System':
     available_hospitals = [h for h in system_hospitals if h in level_ds.coords['organization'].values]
 
     if available_hospitals:
-        st.subheader(f'Hospitals in {selected_entity} — {selected_measure}')
+        st.subheader(f'Hospitals in {selected_entity} — {selected_measure} ({selected_year})')
+        unnorm_col = f'{selected_measure} {title_suffix}'
         raw_vals = _sel_series(
             level_ds[active_var].sel(
                 organization=available_hospitals, state=selected_state, measure=selected_measure, year=selected_year
             ),
-            'Value',
+            unnorm_col,
+            decimals=1
         )
 
         if measure_source != MeasureSource.RATIOS:
@@ -244,7 +251,7 @@ if hospital_or_system == 'System':
                 norm_col,
             )
             hospital_table = raw_vals.to_frame().join(norm_vals)
-            styled = hospital_table.style.format({'Value': '${:,.0f}', norm_col: '{:.1%}'})
+            styled = hospital_table.style.format({unnorm_col: '${:,.0f}', norm_col: '{:.1%}'})
         else:
             hospital_table = raw_vals.to_frame()
             styled = hospital_table.style
