@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15" version="29.4.0">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0.1 Safari/605.1.15">
   <diagram name="Page-1" id="YJmq15JmDkPQDMsGuBWf">
-    <mxGraphModel dx="976" dy="579" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="954" dy="581" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -46,7 +46,7 @@
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="300" y="250" />
-              <mxPoint x="300" y="290" />
+              <mxPoint x="300" y="302" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -75,7 +75,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="S1zLbJDkvtxUM2FSxEG1-13" connectable="0" parent="S1zLbJDkvtxUM2FSxEG1-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Opex" vertex="1">
+        <mxCell id="S1zLbJDkvtxUM2FSxEG1-13" connectable="0" parent="S1zLbJDkvtxUM2FSxEG1-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Operating Expenses" vertex="1">
           <mxGeometry relative="1" x="0.0445" y="2" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
