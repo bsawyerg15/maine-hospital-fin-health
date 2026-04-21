@@ -1,6 +1,5 @@
 import pandas as pd
 import streamlit as st
-from traitlets import default
 from a_Config.enumerations.interface_fields_enum import InterfaceFields
 from a_Config.enumerations.population_enum import Population
 from a_Config.enumerations.measure_source_enum import MeasureSource
@@ -213,7 +212,8 @@ else:
 change_cols = [change_col] if change_col is not None else []
 table_df = hospital_vals.to_frame().join(change_cols + extra_cols)
 
-if measure_source != MeasureSource.RATIOS:
+build_hier_table = measure_source in [MeasureSource.INCOME_STATEMENT, MeasureSource.BALANCE_SHEET]
+if build_hier_table:
     match measure_source:
         case MeasureSource.INCOME_STATEMENT:
             roots = ['Net Income']

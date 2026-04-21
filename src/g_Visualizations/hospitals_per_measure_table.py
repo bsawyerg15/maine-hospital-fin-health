@@ -12,7 +12,7 @@ def hospitals_per_measure_table(active_ds: xr.Dataset, selected_measure: str, la
     table_df = active_ds.sel(measure=selected_measure, year=selected_table_year).to_dataframe()[[last_col, ma_col]].dropna().sort_values(last_col, ascending=False)
     
     fmt = chart_format
-    table_df.columns = [f'{selected_measure}', f'{selected_measure}, {num_years_ma}yma']
+    table_df.columns = [f'{selected_measure} ({selected_table_year})', f'{selected_measure}, {num_years_ma}yma']
     table_df.index.names = ['Organization', 'State']
     if fmt.startswith('$'):
         formatter = lambda x: f'${x:{fmt[1:]}}'
