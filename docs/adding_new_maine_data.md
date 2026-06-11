@@ -22,7 +22,7 @@ The terminal will open at the project root automatically.
 
 Follow the instructions by hand or give it to an AI code assist -- it should be a trivial task for it.
 
-Caveat: these steps below will only work if the reporting format of the pdfs hasn't changed. To the extent they do, the ingest script will need to be reworked. Again, AI code assists seem capable of this task.
+Caveat: the ingest script in the steps below will only work if the reporting format of the MHDO pdfs hasn't changed. To the extent they do, the ingest script will need to be reworked. Again, AI code assists seem capable of this task if you tell it what's going wrong when translating between the pdf and csv.
 
 ---
 
