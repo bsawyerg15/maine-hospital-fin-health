@@ -265,5 +265,5 @@ data_dump_expander = st.expander(f'All Hospital {measure_source.value} Data', ex
 
 with data_dump_expander:
     st.caption('Download via the toolbar icon in the top-right corner of the table.')
-    dump_df = active_ds[active_var].to_series().unstack('year')
+    dump_df = active_ds[active_var].sel(measure=measure_options).to_series().unstack('year')
     st.dataframe(dump_df, use_container_width=True)
