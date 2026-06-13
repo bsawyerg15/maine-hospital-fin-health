@@ -157,6 +157,8 @@ with chart_col:
             title=title,
             tickformat=chart_tickformat,
             yaxis_title=yaxis_title,
+            state=selected_state,
+            hospital_or_system=hospital_or_system,
         ),
         use_container_width=True,
     )

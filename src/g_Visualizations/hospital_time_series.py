@@ -13,6 +13,8 @@ def plot_hospital_time_series(
     subtitle=None,
     tickformat=None,
     yaxis_title=None,
+    state=None,
+    hospital_or_system=None,
 ):
     """
     Line chart of a single hospital's measure over time, with an optional
@@ -66,7 +68,7 @@ def plot_hospital_time_series(
             x=px, y=means,
             mode='lines',
             line=dict(color='gray', dash='dash', width=1.5),
-            name='Population Mean +/- 1 Std. Dev.',
+            name=f'{state.value} {hospital_or_system} Mean +/- 1 Std. Dev.',
             connectgaps=True,
         ))
 
