@@ -139,7 +139,7 @@ suffixes = [s for s in [
     'Normalized' if show_normalized else None,
     f'{num_years_ma}yma' if endpoint_or_ma == MovingAvgOrEndpoint.MOVING_AVG else None,
 ] if s is not None]
-title_suffix = f'({", ".join(suffixes)})'
+title_suffix = f'({", ".join(suffixes)})' if suffixes else ''
 title = f'{selected_measure} {title_suffix}: {selected_entity}' if suffixes else default_title
 yaxis_title = f'{selected_measure} /<br>{normalization}' if show_normalized else selected_measure
 
