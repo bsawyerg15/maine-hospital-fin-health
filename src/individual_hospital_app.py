@@ -241,7 +241,6 @@ if hospital_or_system == 'System':
                 organization=available_hospitals, state=selected_state, measure=selected_measure, year=selected_year
             ),
             unnorm_col,
-            decimals=1
         )
 
         if measure_source != MeasureSource.RATIOS:
@@ -256,7 +255,7 @@ if hospital_or_system == 'System':
             styled = hospital_table.style.format({unnorm_col: '${:,.0f}', norm_col: '{:.1%}'})
         else:
             hospital_table = raw_vals.to_frame()
-            styled = hospital_table.style
+            styled = hospital_table.style.format('{:,.2f}')
 
         st.dataframe(styled, use_container_width=True)
 
