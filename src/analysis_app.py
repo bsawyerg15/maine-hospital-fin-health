@@ -51,7 +51,7 @@ measure_source = MeasureSource(
 
 is_use_ratios = measure_source == MeasureSource.RATIOS
 
-derived_ratios = set(DERIVE_RATIOS['Measure'].unique())
+derived_ratios = list(DERIVE_RATIOS['Measure'].unique())
 match measure_source:
     case MeasureSource.RATIOS:
         measure_options = derived_ratios
@@ -61,7 +61,7 @@ match measure_source:
         measure_options = BALANCE_SHEET_MEASURES
     case MeasureSource.OTHER:
         measure_options = OTHER_MEASURES
-all_measure_options = derived_ratios | INCOME_STATEMENT_MEASURES | BALANCE_SHEET_MEASURES | OTHER_MEASURES
+all_measure_options = derived_ratios + INCOME_STATEMENT_MEASURES + BALANCE_SHEET_MEASURES + OTHER_MEASURES
 
 selected_measure = st.sidebar.selectbox('Measure', measure_options, 0)
 

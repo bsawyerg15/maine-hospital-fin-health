@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from functools import lru_cache
-from typing import Dict, Set
+from typing import Dict, List, Set
 
 _MAPPINGS_DIR = os.path.join(os.path.dirname(__file__), 'csv_configs')
 
@@ -41,10 +41,14 @@ def get_fin_statement_path(measure: str) -> str:
 FINANCIAL_STATEMENT_MODEL['Path'] = FINANCIAL_STATEMENT_MODEL.index.map(get_fin_statement_path)
 
 
-def get_fin_statement_descendants(measure: str) -> Set[str]:
-    """Get all descendant measures of a given measure."""
+def _in_model_order(measures: Set[str]) -> List[str]:
+    return [m for m in FINANCIAL_STATEMENT_MODEL.index if m in measures]
+
+
+def get_fin_statement_descendants(measure: str) -> List[str]:
+    """Get all descendant measures of a given measure, in model order."""
     model = FINANCIAL_STATEMENT_MODEL
-    descendants = set()
+    descendants: Set[str] = set()
     def recurse(m):
         children_df = model.reset_index()
         children = children_df[children_df['Parent'] == m]['Measure'].str.strip().tolist()
@@ -53,12 +57,12 @@ def get_fin_statement_descendants(measure: str) -> Set[str]:
         for child in children:
             recurse(child)
     recurse(measure)
-    return descendants
+    return _in_model_order(descendants)
 
 
-def get_fin_statement_descendants_and_self(measure: str) -> Set[str]:
-    """Return descendants of a measure and the measure itself."""
-    return {measure} | get_fin_statement_descendants(measure)
+def get_fin_statement_descendants_and_self(measure: str) -> List[str]:
+    """Return descendants of a measure and the measure itself, in model order."""
+    return _in_model_order(set(get_fin_statement_descendants(measure)) | {measure})
 
 
 @lru_cache(maxsize=None)
@@ -88,9 +92,16 @@ def get_enriched_financial_model() -> pd.DataFrame:
     return model
 
 
-VALID_MEASURES: Set[str] = set(FINANCIAL_STATEMENT_MODEL.index.str.strip())
-ALL_RATIOS: Set[str] = get_fin_statement_descendants_and_self('Ratios')
-LINE_ITEMS: Set[str] = VALID_MEASURES - ALL_RATIOS
-BALANCE_SHEET_MEASURES: Set[str] = get_fin_statement_descendants_and_self('Total Unrestricted Assets') | get_fin_statement_descendants_and_self('Total Liabilities and Equity')
-INCOME_STATEMENT_MEASURES: Set[str] = get_fin_statement_descendants_and_self('Net Income')
-OTHER_MEASURES: Set[str] = LINE_ITEMS - BALANCE_SHEET_MEASURES - INCOME_STATEMENT_MEASURES
+VALID_MEASURES: List[str] = list(FINANCIAL_STATEMENT_MODEL.index.str.strip())
+ALL_RATIOS: List[str] = get_fin_statement_descendants_and_self('Ratios')
+LINE_ITEMS: List[str] = _in_model_order(set(VALID_MEASURES) - set(ALL_RATIOS))
+BALANCE_SHEET_MEASURES: List[str] = _in_model_order(
+    set(get_fin_statement_descendants_and_self('Total Unrestricted Assets'))
+    | set(get_fin_statement_descendants_and_self('Total Liabilities and Equity'))
+)
+INCOME_STATEMENT_MEASURES: List[str] = _in_model_order(
+    get_fin_statement_descendants_and_self('Net Income') + ['Total Revenue', 'Total Expenses']
+)
+OTHER_MEASURES: List[str] = _in_model_order(
+    set(LINE_ITEMS) - set(BALANCE_SHEET_MEASURES) - set(INCOME_STATEMENT_MEASURES)
+)

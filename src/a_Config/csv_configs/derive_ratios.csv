@@ -1,8 +1,8 @@
 ﻿Measure,Sub-Measure,Numerator or Denominator,Multiplier,Optional?
-Total Margin,Net Income,Numerator,,
-Total Margin,Total Revenue,Denominator,,
 Operating Margin,Net Operating Income,Numerator,,
 Operating Margin,Total Operating Revenue,Denominator,,
+Total Margin,Net Income,Numerator,,
+Total Margin,Total Revenue,Denominator,,
 Average Age of Plant,Accumulated Depreciation,Numerator,,
 Average Age of Plant,Depreciation and Amortization,Denominator,,
 Current Days Cash on Hand,Cash and Investments (Unrestricted),Numerator,365,
