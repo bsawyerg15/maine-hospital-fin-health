@@ -19,7 +19,7 @@ from g_Visualizations.hospitals_per_measure_table import hospitals_per_measure_t
 
 
 st.set_page_config(
-    page_title="Hospital Cross-Sectional Analysis",
+    page_title="Hospital Financials Cross-Sectional Analysis",
     page_icon="🏥",
     layout="wide"
 )
@@ -165,7 +165,8 @@ measure_format = get_measure_tickformat(selected_measure, is_use_levels)
 # App
 #######################################################################################################
 
-st.title("Understanding the financial characteristics of failed hospitals.")
+st.title("Hospital Financial Health")
+st.markdown("**An analysis tool to help explain the differences between hospitals that closed for financial reasons and those that have not.**")
 
 #######################################################################################################
 # Comparison of Measure vs Failed
