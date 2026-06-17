@@ -43,6 +43,10 @@ def _cached_r2_table(states: tuple, num_years_ma: int, entities: frozenset, year
 # User Inputs
 #######################################################################################################
 
+###### Individual Dash Link ######
+
+st.sidebar.markdown("[Link to Individual Hospital Dashboard](https://individualhospitalanalysis.streamlit.app/)")
+st.sidebar.markdown("---")
 ###### Measure Configs #######
 
 measure_source = MeasureSource(
@@ -115,7 +119,8 @@ else:
 
 num_years_ma = st.sidebar.number_input(
     'Lookback Years',
-    1, 10, 5
+    1, 10, 5,
+    help="Controls the number of years for the moving average and in the leadup to failure chart."
 )
 
 #######################################################################################################
@@ -166,7 +171,10 @@ measure_format = get_measure_tickformat(selected_measure, is_use_levels)
 #######################################################################################################
 
 st.title("Hospital Financial Health")
-st.markdown("**An analysis tool to help explain the differences between hospitals that closed for financial reasons and those that have not.**")
+st.markdown("The primary goal of this dashboard is to provide a platform to help identify the characteristics differentiating hospitals that have closed from those that have not. ")
+
+
+st.markdown("This first section helps to explore how the distributions of measures differ between hospitals that have failed and those that continue to operate. Most of the parameters that affect what data is considered (e.g. which measure, which hospitals or systems to include, which years to look at, whether to look at levels or changes) are located in the sidebar on the left.")
 
 #######################################################################################################
 # Comparison of Measure vs Failed
@@ -224,6 +232,11 @@ with col1:
             measure=selected_measure,
         )
     )
+    _, center, _ = st.columns([1, 4, 1])
+    with center:
+        with st.popover("ℹ️ Chart Explanation"):
+            st.markdown("This chart compares the distribution of the selected measure across hospitals that continue to operate and those that have closed: both looking at the moving average in the years leading up to their closer and on the year they closed itself.")
+
 
 ###### Leadup to Failure Chart ######
 
@@ -256,6 +269,14 @@ with col2:
                 measure=selected_measure,
             )
         )
+    _, center, _ = st.columns([1, 4, 1])
+    with center:
+        with st.popover("ℹ️ Chart Explanation"):
+            st.markdown("This chart shows what happened to hospitals that closed along the selected measure in the years leading up to their closure. " \
+                        "It pus them in context against the distribution of hospitals that continue to operate. " \
+                        "All hospitals that failed within the chart's selection window are aligned so 'T' on the x-axis aligns with the year they failed.")
+
+st.markdown("")
 
 ###### Sorted Hospitals Per Measure ######
 
@@ -273,7 +294,17 @@ st.dataframe(calc_measure_comparison_table(aggregate_ds, ma_aggregate_ds, failed
 # Comparison to Other Measures
 #######################################################################################################
 
+st.markdown("---")
+
 st.header("Comparison vs Other Measures")
+
+st.markdown("This section is designed to allow you to start to explore the relationships between the different measures. " \
+"Some questions it's designed to answer are: " \
+"\n- Which measrues are most related to a particular measure? " \
+"\n- How do the changes in one measure relate to the changes in another measure? " \
+"\n- How do failed vs. operational hospitals compare across two measures? " \
+"\n- Does one variable lead another? "
+)
 
 ###### Scatter vs Other Measure ######
 
@@ -281,6 +312,11 @@ margin = 0.3
 _, col, side_col = st.columns([margin, 1, margin])
 
 with side_col:
+    st.markdown("")
+    with st.popover("ℹ️"):
+        st.markdown("Explore the relationship between two measures. The controls below control the x-axis for the entire section. The y variable is controlled using the sidebar to the left (ie. the same parameters that control the whole dashboard.)")
+    st.markdown("")
+
     scatter_measure_x = st.selectbox('Scatter X-Axis Measure', all_measure_options, min(3, len(measure_options) - 1))
     endpoint_or_ma = MovingAvgOrEndpoint(
         st.radio('', [e.value for e in MovingAvgOrEndpoint], label_visibility='collapsed', key='for_scatter')
@@ -298,6 +334,7 @@ with side_col:
     x_change_in_text = _change_in_text(not x_is_use_level, (scatter_measure_x not in derived_ratios))
     x_label = f"{x_change_in_text}{scatter_measure_x}{modification_str}"
     x_format = get_measure_tickformat(scatter_measure_x, x_is_use_level)
+
 with col:
     scatter_da = combined_ds[InterfaceFields.ENDPOINT] if endpoint_or_ma == MovingAvgOrEndpoint.ENDPOINT else combined_ds[InterfaceFields.MA]
     st.plotly_chart(plot_measure_scatter(
@@ -318,6 +355,9 @@ with col:
                 .background_gradient(cmap='Blues', subset=['Last R²', 'MA R²'], vmin=0, vmax=1)
                 .format({'Last R²': '{:.2f}', 'MA R²': '{:.2f}'}))
 
+_, col2, side_col2 = st.columns([margin, 1, margin])
+
+with col2:
     with st.expander("R² vs Ratios", expanded=True):
         st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(derived_ratios), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
 
@@ -326,3 +366,8 @@ with col:
 
     with st.expander("R² vs Change in Balance Sheet Items", expanded=False):
         st.dataframe(_styled(_cached_r2_table(states_key, num_years_ma, frozenset(entities_to_include), year_begin, year_end, selected_measure, tuple(BALANCE_SHEET_MEASURES), change_or_level, x_change_or_level, x_lag)), hide_index=True, use_container_width=True)
+
+with side_col2:
+    with st.popover("ℹ️"):
+        st.markdown("These tables help identify which variables are most correlated to the main measure. The lags in the parameters above will apply to the variables in the table.")
+    
